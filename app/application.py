@@ -16,7 +16,18 @@ from app.routers import auth, system
 from app.security_controls import csrf_token, enforce_csrf
 from app.web_sessions import DatabaseSessionMiddleware
 
+from contextlib import asynccontextmanager
+
 BASE_DIR = Path(__file__).resolve().parent
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    try:
+        from tools.init_db import init_database
+        init_database()
+    except Exception as exc:
+        logging.getLogger("uvicorn.error").warning("Database startup init skipped: %s", exc)
+    yield
 
 class CachedStaticFiles(StaticFiles):
     """Give versioned local dependencies a long-lived browser cache."""
@@ -33,6 +44,7 @@ def create_app() -> FastAPI:
         title="MeatTrack Inventory Portal",
         version="1.0.0",
         dependencies=[Depends(enforce_csrf)],
+        lifespan=lifespan,
     )
     application.add_middleware(DatabaseSessionMiddleware)
     application.mount(
