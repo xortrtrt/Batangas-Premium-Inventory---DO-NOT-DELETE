@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="csrf-token" content="{{ csrf_token(request) }}" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#8b1515" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="manifest" href="/static/manifest.json" />
+    <link rel="icon" type="image/png" href="/static/img/batangas_premium.png" />
+    <title>MeatTrack Inventory Login</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', path='css/login.css') }}?v=20260721-glass-login-1"
+    />
+  </head>
+  <body class="login-page">
+    <div
+      class="login-bg"
+      style="background-image: url('{{ 'background.jpg'|media_url }}')"
+    ></div>
+    <div class="login-overlay"></div>
+
+    <main class="login-wrapper">
+      <section class="login-story" aria-label="Batangas Premium portal overview">
+        <a href="/" class="login-brand">
+          <img
+            src="{{ 'batangas_premium.png'|media_url }}"
+            alt="Batangas Premium"
+            class="login-logo"
+          />
+        </a>
+        <h1>MEATTRACK Portal</h1>
+        <p>
+          Inventory, reseller orders, sales reports, and demand forecasts for
+          Batangas Premium operations.
+        </p>
+        <div class="login-highlights">
+          <span>Owner Forecasts</span>
+          <span>Team Sales</span>
+          <span>Reseller Orders</span>
+        </div>
+      </section>
+
+      <div class="login-card">
+        <h2>Portal Sign In</h2>
+        <p class="login-subtitle">Access your Batangas Premium dashboard</p>
+
+        {% if message or error %}
+        <aside class="notice {{ 'error' if error else 'success' }}">
+          {{ error or message }}
+        </aside>
+        {% endif %}
+
+        {% if login_otp_pending %}
+        <form class="login-form" action="/login/otp" method="post">
+          <div class="login-field">
+            <label for="login-otp">Email OTP</label>
+            <input
+              required
+              id="login-otp"
+              type="text"
+              name="otp_code"
+              inputmode="numeric"
+              pattern="[0-9]{6}"
+              maxlength="6"
+              placeholder="Enter 6-digit OTP"
+              autocomplete="one-time-code"
+            />
+          </div>
+          <p class="login-subtitle">Sent to {{ pending_login_email }}. The OTP expires in 10 minutes.</p>
+          <button class="login-btn" type="submit">Verify OTP</button>
+        </form>
+        <form action="/logout" method="post"><button class="login-back" type="submit">Use another account</button></form>
+        {% else %}
+        <form class="login-form" action="/login" method="post">
+          <div class="login-field">
+            <label for="login-email">Email</label>
+            <input
+              required
+              id="login-email"
+              type="email"
+              name="email"
+              placeholder="name@gmail.com"
+              autocomplete="email"
+            />
+          </div>
+          <div class="login-field">
+            <label for="login-password">Password</label>
+            <input
+              required
+              id="login-password"
+              type="password"
+              name="password"
+              minlength="4"
+              placeholder="Enter your password"
+              autocomplete="current-password"
+            />
+          </div>
+          <label class="consent-check">
+            <input required type="checkbox" name="consent" value="yes" />
+            <span>
+              I confirm that I have read and understood the
+              <a href="/privacy">Privacy Notice</a> and
+              <a href="/terms">Terms and Conditions</a>. I voluntarily consent
+              to Batangas Premium's collection, use, storage, and processing of
+              my personal information in MEATTRACK for account access, reseller
+              application review, order processing, delivery coordination,
+              customer support, reporting, audit logs, system security, and
+              other legitimate business purposes. I understand that I may
+              withdraw consent or exercise my privacy rights through Batangas
+              Premium management or the MEATTRACK system administrator, subject
+              to applicable laws and legitimate business requirements.
+            </span>
+          </label>
+          <button class="login-btn" type="submit">Sign In</button>
+        </form>
+
+        <a class="login-back" href="/">&larr; Back to website</a>
+        {% endif %}
+      </div>
+    </main>
+
+    <script src="{{ url_for('static', path='vendor/lucide-0.514.0.min.js') }}"></script>
+    <script type="module" src="{{ url_for('static', path='js/core.js') }}?v=20261001-frontend-modules-1"></script>
+    <script type="module" src="{{ url_for('static', path='js/forms.js') }}?v=20261001-frontend-modules-1"></script>
+  </body>
+</html>

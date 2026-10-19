@@ -1,0 +1,14 @@
+.git
+.gitignore
+.env
+.env.production
+.venv
+__pycache__
+.pytest_cache
+node_modules
+tmp
+backups
+*.backup
+meattrack-local-images.tar
+*.pyc
+*.log

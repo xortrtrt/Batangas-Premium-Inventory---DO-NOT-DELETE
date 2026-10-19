@@ -1,0 +1,20 @@
+<section class="panel inventory-items-browser finished-products-browser">
+  <div class="panel-heading">
+    <h2>Finished products inventory</h2>
+    <span class="hint">Regular products and reseller packages, organized separately.</span>
+  </div>
+  <form class="filter-bar" method="get" data-async-filter-target="[data-inventory-products-region]">
+    <label>Search <input name="q" value="{{ inventory_products_page.filters.q }}" placeholder="Product, category, unit"></label>
+    <input type="hidden" name="type" value="{{ inventory_products_page.filters.type }}" data-inventory-products-type>
+    <label>Sort
+      <select name="sort">
+        <option value="">Default</option>
+        <option value="name_asc" {{ 'selected' if inventory_products_page.filters.sort == 'name_asc' else '' }}>Name A-Z</option>
+        <option value="category_asc" {{ 'selected' if inventory_products_page.filters.sort == 'category_asc' else '' }}>Category</option>
+        <option value="stock_desc" {{ 'selected' if inventory_products_page.filters.sort == 'stock_desc' else '' }}>Stock high-low</option>
+        <option value="stock_asc" {{ 'selected' if inventory_products_page.filters.sort == 'stock_asc' else '' }}>Stock low-high</option>
+      </select>
+    </label>
+  </form>
+  {% include "portals/team-leader/_inventory_products.html" %}
+</section>
