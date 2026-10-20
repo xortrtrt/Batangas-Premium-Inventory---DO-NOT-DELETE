@@ -228,11 +228,6 @@
             return url;
         }
 
-        function bindRefreshedContent() {
-            bindReceiptCheckout();
-            bindPaymentCountdowns();
-        }
-
         function targetSelectorFor(source) {
             if (!(source instanceof Element)) return "";
             const directTarget = source.closest("[data-async-filter-target]")?.dataset.asyncFilterTarget;
@@ -275,7 +270,6 @@
                 if (documentResponse.title) document.title = documentResponse.title;
                 if (pushState) window.history.pushState({}, "", url);
                 window.lucide?.createIcons();
-                bindRefreshedContent();
                 if (contentSelector === "[data-refund-thread]") {
                     if (replacement.querySelector("[data-refund-conversation]")) {
                         document.dispatchEvent(new CustomEvent("refund:conversation-visible"));
