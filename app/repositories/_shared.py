@@ -74,6 +74,7 @@ INVENTORY_LOG_ACTIONS = (
     "updated_raw_inventory",
     "added_raw_inventory_quantity",
     "created_product_recipe",
+    "updated_product_recipe",
     "produced_product_batch",
     "registered_product_batch",
 )

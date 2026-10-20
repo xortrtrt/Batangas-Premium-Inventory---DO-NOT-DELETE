@@ -390,47 +390,31 @@
     }
 
     function bindRecipeRows() {
-        const rows = document.getElementById("recipe-rows");
-        const addButton = document.getElementById("add-ingredient");
-        if (!rows || !addButton) {
-            return;
-        }
-
-        function updateRemoveButtons() {
+        function updateRemoveButtons(rows) {
             const recipeRows = rows.querySelectorAll("[data-recipe-row]");
             recipeRows.forEach((row) => {
-                const button = row.querySelector("[data-remove-ingredient]");
-                if (button) {
-                    button.disabled = recipeRows.length === 1;
-                }
+                row.querySelector("[data-remove-ingredient]").disabled = recipeRows.length === 1;
             });
         }
-
-        rows.addEventListener("click", (event) => {
-            const removeButton = event.target.closest("[data-remove-ingredient]");
-            if (!removeButton) {
-                return;
+        document.addEventListener("click", (event) => {
+            const button = event.target.closest("[data-add-ingredient], [data-remove-ingredient]");
+            if (!button) return;
+            const editor = button.closest("[data-recipe-editor]");
+            if (!editor) return;
+            const rows = editor.querySelector("[data-recipe-rows]");
+            if (button.matches("[data-add-ingredient]")) {
+                const newRow = rows.querySelector("[data-recipe-row]").cloneNode(true);
+                newRow.querySelectorAll("input").forEach((input) => { input.value = ""; });
+                newRow.querySelectorAll("select").forEach((select) => { select.selectedIndex = 0; });
+                rows.appendChild(newRow);
+                newRow.querySelector("select").focus();
+                window.lucide?.createIcons();
+            } else if (rows.querySelectorAll("[data-recipe-row]").length > 1) {
+                button.closest("[data-recipe-row]").remove();
             }
-            const recipeRows = rows.querySelectorAll("[data-recipe-row]");
-            if (recipeRows.length <= 1) {
-                return;
-            }
-            removeButton.closest("[data-recipe-row]").remove();
-            updateRemoveButtons();
+            updateRemoveButtons(rows);
         });
-
-        addButton.addEventListener("click", () => {
-            const sourceRow = rows.querySelector("[data-recipe-row]");
-            const newRow = sourceRow.cloneNode(true);
-            newRow.querySelectorAll("input").forEach((input) => {
-                input.value = "";
-            });
-            rows.appendChild(newRow);
-            updateRemoveButtons();
-            window.lucide?.createIcons();
-        });
-
-        updateRemoveButtons();
+        document.querySelectorAll("[data-recipe-rows]").forEach(updateRemoveButtons);
     }
 
     function bindInventoryWorkspaceModals() {

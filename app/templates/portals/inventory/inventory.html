@@ -14,7 +14,7 @@
   <div class="inventory-task-grid">
     <button class="inventory-task-card inventory-task-card--quantity" type="button" data-inventory-modal-open="dispatch-stock" aria-haspopup="dialog" aria-controls="inventory-modal-dispatch-stock">
       <span class="inventory-task-icon"><i data-lucide="truck"></i></span>
-      <span class="inventory-task-copy"><span class="inventory-task-kicker">Stock out</span><strong>Dispatch Stock</strong><small>Record finished packs leaving inventory, earliest expiry first.</small></span>
+      <span class="inventory-task-copy"><span class="inventory-task-kicker">Stock out</span><strong>Deduct Stock</strong><small>Record finished packs leaving inventory, earliest expiry first.</small></span>
       <span class="inventory-task-meta">Finished products</span>
       <span class="inventory-task-arrow" aria-hidden="true"><i data-lucide="arrow-up-right"></i></span>
     </button>
@@ -67,7 +67,7 @@
       <span class="inventory-task-copy">
         <span class="inventory-task-kicker">Recipe library</span>
         <strong>Product recipes</strong>
-        <small>Review ingredients and update declared pack contents.</small>
+        <small>Customize product recipes and update declared pack contents.</small>
       </span>
       <span class="inventory-task-meta">{{ recipe_products_page.pagination.total }} product{{ '' if recipe_products_page.pagination.total == 1 else 's' }}</span>
       <span class="inventory-task-arrow" aria-hidden="true"><i data-lucide="arrow-up-right"></i></span>
@@ -80,7 +80,7 @@
   <section class="inventory-modal-card inventory-modal-card--compact" role="dialog" aria-modal="true" aria-labelledby="inventory-modal-dispatch-stock-title" tabindex="-1">
     <header class="inventory-modal-head">
       <span class="inventory-modal-icon"><i data-lucide="truck"></i></span>
-      <div><span class="eyebrow">Stock out</span><h2 id="inventory-modal-dispatch-stock-title">Dispatch Stock</h2><p>Approved, unexpired batches are used in expiry order.</p></div>
+      <div><span class="eyebrow">Stock out</span><h2 id="inventory-modal-dispatch-stock-title">Deduct Stock</h2><p>Approved, unexpired batches are used in expiry order.</p></div>
       <button class="icon-button" type="button" aria-label="Close dispatch stock" data-inventory-modal-close><i data-lucide="x"></i></button>
     </header>
     <div class="inventory-modal-body">
@@ -91,7 +91,7 @@
         <label>Quantity (packs) <input required type="number" min="1" step="1" name="quantity" inputmode="numeric" /></label>
         <label>Dispatch note <textarea required name="note" maxlength="500" rows="3" placeholder="Where the packs are going or why they are leaving"></textarea></label>
         <p class="hint">Confirm the quantity before recording. Each deduction is saved in the stock movement history.</p>
-        <footer class="inventory-modal-actions"><button class="button subtle" type="button" data-inventory-modal-close>Cancel</button><button class="button primary" type="submit"><i data-lucide="truck"></i> Record dispatch</button></footer>
+        <footer class="inventory-modal-actions"><button class="button subtle" type="button" data-inventory-modal-close>Cancel</button><button class="button primary" type="submit"><i data-lucide="truck"></i> Deduct stock</button></footer>
       </form>
     </div>
   </section>
@@ -154,7 +154,7 @@
       <button class="icon-button" type="button" aria-label="Close create product recipe" data-inventory-modal-close><i data-lucide="x"></i></button>
     </header>
     <div class="inventory-modal-body">
-      <form class="form-panel bare inventory-modal-form inventory-recipe-panel" id="product-recipe-form" action="/portal/inventory/products" method="post">
+      <form class="form-panel bare inventory-modal-form inventory-recipe-panel" id="product-recipe-form" data-recipe-editor action="/portal/inventory/products" method="post">
         <div class="form-grid">
           <label>Product name <input required name="name" placeholder="Tocino" /></label>
           <label>Category <select name="category" required>{% for category in product_categories %}<option value="{{ category }}">{{ category }}</option>{% endfor %}</select></label>
@@ -170,9 +170,9 @@
         </div>
         <div class="inventory-form-section-head">
           <div><strong>Ingredients per pack</strong><small>Add every material used by one finished pack.</small></div>
-          <button class="button subtle" type="button" id="add-ingredient"><i data-lucide="plus"></i> Add ingredient</button>
+          <button class="button subtle" type="button" id="add-ingredient" data-add-ingredient><i data-lucide="plus"></i> Add ingredient</button>
         </div>
-        <div class="recipe-rows" id="recipe-rows">
+        <div class="recipe-rows" id="recipe-rows" data-recipe-rows>
           <div class="ingredient-row" data-recipe-row>
             <label>Ingredient <select name="material_item_id[]" required>{% for material in raw_materials %}<option value="{{ material.raw_material_id }}">{{ material.name }} — {{ material.category }} — {{ material.available|number }} {{ material.unit }}</option>{% endfor %}</select></label>
             <label>Required per pack <input required type="number" min="0.001" step="0.001" name="quantity_required[]" placeholder="200" /></label>
@@ -219,7 +219,7 @@
   <section class="inventory-modal-card inventory-modal-card--wide" role="dialog" aria-modal="true" aria-labelledby="inventory-modal-product-recipes-title" tabindex="-1">
     <header class="inventory-modal-head">
       <span class="inventory-modal-icon"><i data-lucide="book-open-text"></i></span>
-      <div><span class="eyebrow">Recipe library</span><h2 id="inventory-modal-product-recipes-title">Product recipes</h2><p>Review ingredients and update declared pack contents.</p></div>
+      <div><span class="eyebrow">Recipe library</span><h2 id="inventory-modal-product-recipes-title">Product recipes</h2><p>Customize product recipes and update declared pack contents.</p></div>
       <button class="icon-button" type="button" aria-label="Close product recipes" data-inventory-modal-close><i data-lucide="x"></i></button>
     </header>
     <div class="inventory-modal-body product-recipes-panel">
@@ -231,14 +231,14 @@
       <div class="recipe-card-list">
         {% for product in recipe_products %}
         {% set recipe_rows = product_recipes | selectattr("product_id", "equalto", product.product_id) | list %}
-        <details class="recipe-card">
+        <details class="recipe-card" {{ 'open' if request.query_params.get("recipe_product") == product.product_id|string else '' }}>
           <summary class="recipe-card-summary">
             <span class="recipe-card-product">
               <strong>{{ product.name }}</strong>
               <small>{{ product.description }}</small>
               {% if product.pack_content_status == "declared" %}<small>Declared net content: {{ product.pack_size|number }} {{ product.pack_size_unit }} per pack</small>{% else %}<small class="muted">Declared net content is not configured for this legacy product.</small>{% endif %}
             </span>
-            <span class="recipe-count">{{ recipe_rows|length }} ingredient{{ "" if recipe_rows|length == 1 else "s" }}</span>
+            <span class="recipe-count">{{ recipe_rows|length }} ingredient{{ "" if recipe_rows|length == 1 else "s" }}  /  {{ "Customize recipe" if recipe_rows else "Add recipe" }}</span>
           </summary>
           <form class="form-panel bare" action="/portal/inventory/products/{{ product.product_id }}/pack-content" method="post">
             <div class="form-grid">
@@ -253,6 +253,30 @@
             {% for recipe in recipe_rows %}<div class="recipe-line"><span>{{ recipe.raw_material_name }}</span><span>{{ recipe.raw_material_category.replace("_", " ")|title }}</span><span>{{ recipe.quantity_required|number }} {{ recipe.unit }}</span></div>{% endfor %}
           </div>
           {% else %}<span class="muted recipe-empty">No recipe configured yet.</span>{% endif %}
+          <form class="form-panel bare inventory-recipe-panel" data-recipe-editor action="/portal/inventory/products/{{ product.product_id }}/recipe" method="post">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}" />
+            <input type="hidden" name="q" value="{{ recipe_products_page.filters.q }}" />
+            <input type="hidden" name="page" value="{{ recipe_products_page.pagination.page }}" />
+            <div class="inventory-form-section-head">
+              <div><strong>{{ "Customize recipe" if recipe_rows else "Add recipe" }}</strong><small>Ingredients needed for one finished pack. Changes apply to future production.</small></div>
+              <button class="button subtle" type="button" data-add-ingredient>Add ingredient</button>
+            </div>
+            <div class="recipe-rows" data-recipe-rows>
+              {% for row in recipe_rows or [none] %}
+              <div class="ingredient-row" data-recipe-row>
+                <label>Ingredient <select name="material_item_id[]" required>
+                  <option value="">Choose a material</option>
+                  {% if row and row.raw_material_id not in raw_materials|map(attribute="raw_material_id")|list %}<option value="{{ row.raw_material_id }}" selected>{{ row.raw_material_name }} (unavailable)</option>{% endif %}
+                  {% for material in raw_materials %}<option value="{{ material.raw_material_id }}" {{ 'selected' if row and row.raw_material_id == material.raw_material_id else '' }}>{{ material.name }} ({{ material.unit }})</option>{% endfor %}
+                </select></label>
+                <label>Required per pack <input required type="number" min="0.001" step="0.001" name="quantity_required[]" value="{{ row.quantity_required if row else '' }}" /></label>
+                <label>Input unit <select name="quantity_required_unit[]" required>{% for unit in recipe_units %}<option value="{{ unit }}" {{ 'selected' if row and row.unit == unit else '' }}>{{ unit }}</option>{% endfor %}</select></label>
+                <button class="icon-button danger" type="button" data-remove-ingredient aria-label="Remove ingredient" {{ 'disabled' if loop.length == 1 else '' }}>&times;</button>
+              </div>
+              {% endfor %}
+            </div>
+            <button class="button primary" type="submit">Save recipe</button>
+          </form>
         </details>
         {% else %}
         <div class="inventory-empty-state"><i data-lucide="notebook-tabs"></i><strong>No finished products yet</strong><small>Create a product recipe to start your library.</small></div>

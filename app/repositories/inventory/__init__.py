@@ -7,6 +7,7 @@ from .products import (
     create_product_with_recipe,
     produce_product,
     update_product_pack_content,
+    update_product_recipe,
     update_product_price,
 )
 from .queries import (
@@ -45,6 +46,7 @@ __all__ = [
     "add_raw_inventory_quantity",
     "create_product_with_recipe",
     "update_product_pack_content",
+    "update_product_recipe",
     "produce_product",
     "add_product_batch",
     "update_product_price",

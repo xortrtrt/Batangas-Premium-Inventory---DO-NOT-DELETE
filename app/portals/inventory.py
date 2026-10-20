@@ -4,6 +4,8 @@ from datetime import date
 from uuid import uuid4
 
 from fastapi import APIRouter, Form, Request
+from starlette.concurrency import run_in_threadpool
+from app.web import path_with_query
 
 from app import repositories as data
 from app.portals import shared
@@ -333,6 +335,29 @@ async def create_product(request: Request):
     except ValueError as exc:
         return shared.redirect_to(shared.safe_portal_path("inventory", "inventory", error=str(exc)))
     return shared.redirect_to(shared.safe_portal_path("inventory", "inventory", message="Product recipe created successfully."))
+
+@router.post("/portal/inventory/products/{product_id}/recipe")
+@router.post("/portal/team-leader/products/{product_id}/recipe")
+async def save_product_recipe(request: Request, product_id: int):
+    guard = shared.require_portal_session(request)
+    if guard:
+        return guard
+    form = await request.form()
+    result = {}
+    try:
+        await run_in_threadpool(
+            data.update_product_recipe, product_id, form.getlist("material_item_id[]"),
+            form.getlist("quantity_required[]"), form.getlist("quantity_required_unit[]"),
+            shared.session_account_id(request),
+        )
+        result["message"] = "Recipe saved. Future production will use these ingredients."
+    except ValueError as exc:
+        result["error"] = str(exc)
+    return shared.redirect_to(path_with_query(
+        "/portal/inventory/inventory", modal="product-recipes", recipe_product=str(product_id),
+        q=str(form.get("q", "")), page=str(form.get("page", "1")), **result,
+    ))
+
 
 @router.post("/portal/inventory/production")
 @router.post("/portal/team-leader/production")

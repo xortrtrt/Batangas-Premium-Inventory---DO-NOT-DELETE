@@ -130,6 +130,61 @@ def create_product_with_recipe(
     return clean_row(product)
 
 
+def update_product_recipe(
+    product_id: int,
+    material_item_ids: list[object],
+    quantities: list[object],
+    units: list[object],
+    actor_account_id: int | None = None,
+) -> None:
+    if not material_item_ids:
+        raise ValueError("Add at least one ingredient.")
+    if len(material_item_ids) != len(quantities) or len(quantities) != len(units):
+        raise ValueError("Ingredient rows are incomplete.")
+    requirements = []
+    seen = set()
+    for item_id, quantity, unit in zip(material_item_ids, quantities, units):
+        try:
+            material_id = int(item_id)
+        except (ValueError, TypeError):
+            raise ValueError("Choose valid raw inventory items.") from None
+        if material_id in seen:
+            raise ValueError("Each ingredient can only be selected once.")
+        seen.add(material_id)
+        requirements.append((material_id,
+                             measurements.parse_decimal_exact(quantity, "Ingredient quantity", scale=3, positive=True),
+                             require_inventory_choice(unit, recipe_units, "Ingredient unit")))
+    with get_transaction_cursor() as cur:
+        cur.execute("""
+            SELECT item_id FROM inventory_items
+            WHERE item_id=%s AND item_type='finished_product' AND is_active=true
+            FOR UPDATE;
+        """, (product_id,))
+        if cur.fetchone() is None:
+            raise ValueError("Unknown product")
+        cur.execute("""
+            SELECT item_id, name, unit FROM inventory_items
+            WHERE item_id=ANY(%s) AND item_type='raw_material' AND is_active=true
+            ORDER BY item_id FOR UPDATE;
+        """, (sorted(seen),))
+        materials = {row["item_id"]: row for row in cur.fetchall()}
+        if len(materials) != len(seen):
+            raise ValueError("Choose valid active raw inventory items.")
+        converted = []
+        for material_id, quantity, unit in requirements:
+            material = materials[material_id]
+            converted.append((product_id, material_id,
+                              convert_inventory_quantity(quantity, unit, material["unit"], material["name"]),
+                              material["unit"]))
+        cur.execute("DELETE FROM product_recipes WHERE product_item_id=%s", (product_id,))
+        cur.executemany("""
+            INSERT INTO product_recipes (product_item_id, material_item_id, quantity_required, unit)
+            VALUES (%s, %s, %s, %s);
+        """, converted)
+        _add_log_cursor(cur, actor_account_id=actor_account_id, action="updated_product_recipe",
+                        entity_type="inventory_items", entity_id=product_id)
+
+
 def update_product_pack_content(
     product_id: int,
     pack_size: object,
@@ -179,7 +234,8 @@ def produce_product(
             FROM inventory_items
             WHERE item_id = %s
               AND item_type = 'finished_product'
-              AND is_active = true;
+              AND is_active = true
+            FOR UPDATE;
         """, (product_id,))
         product = cur.fetchone()
         if product is None:
@@ -197,7 +253,7 @@ def produce_product(
             JOIN inventory_items rm ON rm.item_id = pr.material_item_id
             WHERE pr.product_item_id = %s
               AND rm.item_type = 'raw_material'
-            ORDER BY pr.recipe_id
+            ORDER BY pr.material_item_id
             FOR UPDATE OF rm;
         """, (product_id,))
         recipe_rows = cur.fetchall()

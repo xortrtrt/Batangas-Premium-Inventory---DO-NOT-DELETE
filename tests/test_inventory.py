@@ -21,7 +21,7 @@ from app.business_time import business_today
 from app.repositories import accounts
 from app.repositories.inventory import (
     add_product_batch, add_raw_inventory_item, add_raw_inventory_quantity,
-    create_product_with_recipe, dispatch_stock, produce_product,
+    create_product_with_recipe, dispatch_stock, produce_product, update_product_recipe,
 )
 from app.security import hash_password, verify_password
 from tools import init_db
@@ -287,6 +287,16 @@ def test_http_auth_csrf_pages_and_dispatch(stock):
         assert client.get(path).status_code == 404
     page = client.get("/portal/inventory/inventory")
     token = re.search(r'name="csrf-token" content="([^"]+)"', page.text).group(1)
+    recipe_url = f"/portal/inventory/products/{product}/recipe"
+    recipe_form = {"material_item_id[]": stock[2], "quantity_required[]": "250",
+                   "quantity_required_unit[]": "g", "q": "Tocino", "page": "1"}
+    assert client.post(recipe_url, data=recipe_form).status_code == 403
+    recipe_form["csrf_token"] = token
+    saved = client.post(recipe_url, data=recipe_form)
+    assert saved.status_code == 200 and "Recipe saved" in saved.text
+    assert "modal=product-recipes" in str(saved.url) and "q=Tocino" in str(saved.url)
+    assert 'data-recipe-editor' in saved.text and 'value="0.25"' in saved.text
+    assert "Deduct Stock" in saved.text
     reference = re.search(r'name="submission_reference" value="([^"]+)"', page.text).group(1)
     form = {"product_id": product, "quantity": "2", "note": "HTTP dispatch", "submission_reference": reference, "csrf_token": token}
     response = client.post("/portal/inventory/dispatch", data=form)
@@ -338,3 +348,53 @@ def test_login_throttling(inventory_db):
         record_password_login(request, "blocked@test.invalid", False)
     with pytest.raises(ValueError, match="Too many"):
         enforce_password_login(request, "blocked@test.invalid")
+
+
+def test_customize_recipe_preserves_history_and_changes_future_production(stock):
+    dsn, actor, material, product = stock
+    produce_product(product, "BEFORE-EDIT", "2", business_today() + timedelta(days=10), actor)
+    history = scalar(dsn, "SELECT count(*) FROM inventory_movements")
+    update_product_recipe(product, [material], ["250"], ["g"], actor)
+    assert scalar(dsn, "SELECT quantity_available FROM inventory_items WHERE item_id=%s", (material,)) == 9
+    assert scalar(dsn, "SELECT count(*) FROM inventory_movements") == history
+    assert scalar(dsn, "SELECT quantity_available FROM inventory_batches WHERE batch_code='BEFORE-EDIT'") == 2
+    assert scalar(dsn, "SELECT quantity_required FROM product_recipes WHERE product_item_id=%s", (product,)) == Decimal("0.25")
+    produce_product(product, "AFTER-EDIT", "2", business_today() + timedelta(days=10), actor)
+    assert scalar(dsn, "SELECT quantity_available FROM inventory_items WHERE item_id=%s", (material,)) == Decimal("8.5")
+    assert scalar(dsn, "SELECT count(*) FROM inventory_items WHERE item_type='finished_product'") == 1
+
+
+@pytest.mark.parametrize("case", ["empty", "duplicate", "unit", "missing", "inactive", "incomplete", "negative"])
+def test_invalid_recipe_edit_is_atomic(stock, case):
+    dsn, actor, material, product = stock
+    ids, quantities, units = [material], ["250"], ["g"]
+    if case == "empty":
+        ids, quantities, units = [], [], []
+    elif case == "duplicate":
+        ids, quantities, units = [material, material], ["250", "250"], ["g", "g"]
+    elif case == "unit":
+        units = ["ml"]
+    elif case == "missing":
+        ids = [999999]
+    elif case == "incomplete":
+        quantities = []
+    elif case == "negative":
+        quantities = ["-1"]
+    elif case == "inactive":
+        with psycopg2.connect(dsn) as conn:
+            with conn.cursor() as cur:
+                cur.execute("UPDATE inventory_items SET is_active=false WHERE item_id=%s", (material,))
+    with pytest.raises(ValueError):
+        update_product_recipe(product, ids, quantities, units, actor)
+    assert scalar(dsn, "SELECT quantity_required FROM product_recipes WHERE product_item_id=%s", (product,)) == Decimal("0.5")
+    assert scalar(dsn, "SELECT quantity_available FROM inventory_items WHERE item_id=%s", (material,)) == 10
+
+
+def test_add_recipe_to_existing_product(stock):
+    dsn, actor, material, product = stock
+    with psycopg2.connect(dsn) as conn:
+        with conn.cursor() as cur:
+            cur.execute("DELETE FROM product_recipes WHERE product_item_id=%s", (product,))
+    update_product_recipe(product, [material], ["500"], ["g"], actor)
+    update_product_recipe(product, [material], ["500"], ["g"], actor)
+    assert scalar(dsn, "SELECT count(*) FROM product_recipes WHERE product_item_id=%s", (product,)) == 1
