@@ -107,12 +107,9 @@ def count_activity_logs(
     row = fetch_one(query + ";", tuple(params) or None)
     return int(row["total"]) if row else 0
 
-def current_metrics(team_leader_account_id: int | None = None, reseller_account_id: int | None = None) -> dict:
+def current_metrics() -> dict:
     row = fetch_one("""
         SELECT
-            0 AS fulfilled_sales,
-            0 AS pending_reseller_orders,
-            0 AS active_resellers,
             (
                 SELECT COUNT(*)
                 FROM alerts
@@ -129,9 +126,6 @@ def current_metrics(team_leader_account_id: int | None = None, reseller_account_
     """)
 
     return {
-        "fulfilled_sales": 0.0,
-        "pending_reseller_orders": 0,
-        "active_resellers": 0,
         "open_alerts": int(row["open_alerts"]) if row else 0,
         "total_available": float(row["total_available"]) if row else 0.0,
     }

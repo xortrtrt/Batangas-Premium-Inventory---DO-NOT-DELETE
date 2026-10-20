@@ -10,7 +10,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 load_dotenv(PROJECT_ROOT / ".env")
 
 APP_ENV = os.getenv("APP_ENV", "development")
-SESSION_SECRET_KEY = os.getenv("SESSION_SECRET_KEY", "meattrack-inventory-secure-secret-key-2026")
+SESSION_SECRET_KEY = os.getenv("SESSION_SECRET_KEY", "local-development-only")
 
 def env_bool(name: str, default: bool) -> bool:
     value = os.getenv(name)
@@ -18,13 +18,19 @@ def env_bool(name: str, default: bool) -> bool:
         return default
     return value.strip().lower() in {"1", "true", "yes", "on"}
 
-AUTH_RATE_LIMIT_ENABLED = env_bool("AUTH_RATE_LIMIT_ENABLED", False)
+# Older Render services explicitly set this to false. Enforce it in production
+# so deploying the safer release does not require a separate dashboard update.
+AUTH_RATE_LIMIT_ENABLED = APP_ENV == "production" or env_bool("AUTH_RATE_LIMIT_ENABLED", True)
 CSRF_PROTECTION_ENABLED = env_bool("CSRF_PROTECTION_ENABLED", True)
 RATE_LIMIT_HASH_KEY = os.getenv("RATE_LIMIT_HASH_KEY", SESSION_SECRET_KEY + ":rate-limits").strip()
+if APP_ENV == "production":
+    if SESSION_SECRET_KEY == "local-development-only" or not SESSION_SECRET_KEY.strip():
+        raise RuntimeError("Set SESSION_SECRET_KEY for production.")
+    if not AUTH_RATE_LIMIT_ENABLED or not CSRF_PROTECTION_ENABLED or not RATE_LIMIT_HASH_KEY:
+        raise RuntimeError("Production requires login throttling, CSRF protection, and a rate-limit hash key.")
 BUSINESS_TIMEZONE = os.getenv("BUSINESS_TIMEZONE", "Asia/Manila").strip() or "Asia/Manila"
 SESSION_COOKIE_NAME = os.getenv("SESSION_COOKIE_NAME", "meattrack_inventory_session").strip()
 APP_BASE_URL = os.getenv("APP_BASE_URL", "http://127.0.0.1:8000").strip().rstrip("/")
-LOGIN_OTP_ENABLED = env_bool("LOGIN_OTP_ENABLED", False)
 
 DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
 if not DATABASE_URL:

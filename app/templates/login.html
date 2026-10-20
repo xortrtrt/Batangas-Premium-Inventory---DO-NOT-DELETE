@@ -32,15 +32,15 @@
             class="login-logo"
           />
         </a>
-        <h1>MEATTRACK Portal</h1>
+        <h1>Batangas Premium Inventory</h1>
         <p>
-          Inventory, reseller orders, sales reports, and demand forecasts for
+          Materials, product recipes, production batches, and stock dispatch for
           Batangas Premium operations.
         </p>
         <div class="login-highlights">
-          <span>Owner Forecasts</span>
-          <span>Team Sales</span>
-          <span>Reseller Orders</span>
+          <span>Materials & Recipes</span>
+          <span>Batch Production</span>
+          <span>Stock Movements</span>
         </div>
       </section>
 
@@ -54,27 +54,7 @@
         </aside>
         {% endif %}
 
-        {% if login_otp_pending %}
-        <form class="login-form" action="/login/otp" method="post">
-          <div class="login-field">
-            <label for="login-otp">Email OTP</label>
-            <input
-              required
-              id="login-otp"
-              type="text"
-              name="otp_code"
-              inputmode="numeric"
-              pattern="[0-9]{6}"
-              maxlength="6"
-              placeholder="Enter 6-digit OTP"
-              autocomplete="one-time-code"
-            />
-          </div>
-          <p class="login-subtitle">Sent to {{ pending_login_email }}. The OTP expires in 10 minutes.</p>
-          <button class="login-btn" type="submit">Verify OTP</button>
-        </form>
-        <form action="/logout" method="post"><button class="login-back" type="submit">Use another account</button></form>
-        {% else %}
+
         <form class="login-form" action="/login" method="post">
           <div class="login-field">
             <label for="login-email">Email</label>
@@ -101,25 +81,12 @@
           </div>
           <label class="consent-check">
             <input required type="checkbox" name="consent" value="yes" />
-            <span>
-              I confirm that I have read and understood the
-              <a href="/privacy">Privacy Notice</a> and
-              <a href="/terms">Terms and Conditions</a>. I voluntarily consent
-              to Batangas Premium's collection, use, storage, and processing of
-              my personal information in MEATTRACK for account access, reseller
-              application review, order processing, delivery coordination,
-              customer support, reporting, audit logs, system security, and
-              other legitimate business purposes. I understand that I may
-              withdraw consent or exercise my privacy rights through Batangas
-              Premium management or the MEATTRACK system administrator, subject
-              to applicable laws and legitimate business requirements.
-            </span>
+            <span>I understand that account access and inventory actions are recorded for stock accountability and system security.</span>
           </label>
           <button class="login-btn" type="submit">Sign In</button>
         </form>
 
         <a class="login-back" href="/">&larr; Back to website</a>
-        {% endif %}
       </div>
     </main>
 

@@ -9,7 +9,6 @@ from fastapi.staticfiles import StaticFiles
 
 from app import web
 from app.audit_context import begin_audit_context, end_audit_context
-from app.config import APP_ENV, AUTH_RATE_LIMIT_ENABLED, CSRF_PROTECTION_ENABLED
 from app.portals import inventory as inventory_portal
 from app.portals import shared as shared_portal
 from app.routers import auth, system
@@ -22,12 +21,20 @@ BASE_DIR = Path(__file__).resolve().parent
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    from starlette.concurrency import run_in_threadpool
+    from tools.init_db import init_database
+    from app import database
     try:
-        from tools.init_db import init_database
-        init_database()
-    except Exception as exc:
-        logging.getLogger("uvicorn.error").warning("Database startup init skipped: %s", exc)
-    yield
+        await run_in_threadpool(init_database)
+    except Exception:
+        logging.getLogger("uvicorn.error").exception("Inventory database initialization failed; startup refused.")
+        raise
+    try:
+        yield
+    finally:
+        if database.pool is not None:
+            database.pool.closeall()
+            database.pool = None
 
 class CachedStaticFiles(StaticFiles):
     """Give versioned local dependencies a long-lived browser cache."""

@@ -1,18 +1,38 @@
 from __future__ import annotations
 
 from datetime import date
+from uuid import uuid4
 
-from fastapi import APIRouter, Form, HTTPException, Request
+from fastapi import APIRouter, Form, Request
 
 from app import repositories as data
-from app.business_time import business_today
 from app.portals import shared
 
 router = APIRouter()
 
+
+@router.post("/portal/inventory/dispatch")
+def dispatch_inventory(
+    request: Request,
+    product_id: int = Form(...),
+    quantity: str = Form(...),
+    note: str = Form(...),
+    submission_reference: str = Form(...),
+):
+    guard = shared.require_portal_session(request)
+    if guard:
+        return guard
+    try:
+        result = data.dispatch_stock(product_id, quantity, note, submission_reference,
+                                     shared.session_account_id(request))
+    except ValueError as exc:
+        return shared.redirect_to(shared.safe_portal_path("inventory", "inventory", error=str(exc)))
+    message = "Dispatch already recorded." if result["already_recorded"] else "Stock dispatched successfully."
+    return shared.redirect_to(shared.safe_portal_path("inventory", "logs", message=message))
+
 def logs_page(request: Request, page_size: int = 10, inventory_only: bool = True) -> dict:
     filters = shared.portal_filters(request)
-    movement_category = filters["type"] if filters["type"] in {"opening", "receipts", "production", "sales"} else ""
+    movement_category = filters["type"] if filters["type"] in {"opening", "receipts", "production", "dispatch"} else ""
     if inventory_only:
         items = data.list_inventory_movements(
             q=filters["q"],
@@ -151,14 +171,12 @@ def profile_context(request: Request) -> dict:
     account = data.account_portal_profile(account_id) if account_id is not None else None
     return {
         "account_profile": account,
-        "password_otp_pending": False,
     }
 
 def dashboard_context(request: Request) -> dict:
-    account_id = shared.session_account_id(request)
     return {
         "team_leader_role": "inventory",
-        "metrics": data.current_metrics(team_leader_account_id=account_id),
+        "metrics": data.current_metrics(),
         "products": data.list_products(),
         "movement_analytics": data.inventory_product_movement_analytics(days=30, limit=8),
     }
@@ -167,6 +185,7 @@ def inventory_context(request: Request) -> dict:
     recipe_products_page = shared.product_page(request, page_size=8)
     recipe_product_ids = [product["product_id"] for product in recipe_products_page["items"]]
     return {
+        "dispatch_reference": str(uuid4()),
         "products": data.list_products(),
         "recipe_products_page": recipe_products_page,
         "recipe_products": recipe_products_page["items"],
@@ -201,7 +220,7 @@ def logs_context(request: Request) -> dict:
             ("opening", "Opening"),
             ("receipts", "Receipts"),
             ("production", "Production"),
-            ("sales", "Sales"),
+            ("dispatch", "Dispatch"),
         ),
     }
 

@@ -683,337 +683,89 @@
 }
 
 /* Read-only roster for reseller accounts assigned to a sales leader. */
-.role-team-leader.leader-role-sales .team-resellers-page {
-  display: grid;
-  gap: 16px;
-}
 
-.role-team-leader.leader-role-sales .team-resellers-hero {
-  display: flex;
-  align-items: end;
-  justify-content: space-between;
-  gap: 28px;
-  min-height: 164px;
-  padding: 28px 30px;
-  overflow: hidden;
-  border: 1px solid rgba(215, 182, 33, 0.3);
-  border-radius: 14px;
-  background:
-    linear-gradient(115deg, rgba(255, 255, 255, 0.03), transparent 48%),
-    repeating-linear-gradient(135deg, transparent 0 22px, rgba(255, 255, 255, 0.025) 22px 23px),
-    #171511;
-  color: #fff;
-  box-shadow: 0 18px 44px rgba(37, 28, 12, 0.15);
-}
 
-.role-team-leader.leader-role-sales .team-resellers-hero h2 {
-  margin: 5px 0 7px;
-  color: #fff;
-  font-size: clamp(1.75rem, 3vw, 2.45rem);
-  letter-spacing: -0.045em;
-}
 
-.role-team-leader.leader-role-sales .team-resellers-hero p {
-  max-width: 650px;
-  margin: 0;
-  color: rgba(255, 255, 255, 0.64);
-}
 
-.role-team-leader.leader-role-sales .team-resellers-total {
-  display: grid;
-  min-width: 150px;
-  padding-left: 24px;
-  border-left: 1px solid rgba(255, 255, 255, 0.16);
-}
 
-.role-team-leader.leader-role-sales .team-resellers-total strong {
-  color: var(--gold);
-  font-size: 2.45rem;
-  line-height: 1;
-}
 
-.role-team-leader.leader-role-sales .team-resellers-total span {
-  margin-top: 8px;
-  color: rgba(255, 255, 255, 0.62);
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
 
-.role-team-leader.leader-role-sales .team-resellers-ledger {
-  padding: 0;
-  overflow: hidden;
-}
 
-.role-team-leader.leader-role-sales .team-resellers-filter {
-  gap: 10px;
-  margin: 0;
-  padding: 16px 20px;
-  border-bottom: 1px solid rgba(72, 57, 24, 0.12);
-  background: #f7f2e7;
-}
 
-.role-team-leader.leader-role-sales .team-resellers-filter label {
-  flex: 1 1 190px;
-  color: #5f584d;
-  font-size: 0.68rem;
-  font-weight: 850;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
 
-.role-team-leader.leader-role-sales .team-resellers-filter input,
-.role-team-leader.leader-role-sales .team-resellers-filter select {
-  min-height: 42px;
-  border-color: rgba(72, 57, 24, 0.18);
-  border-radius: 8px;
-  background: #fff;
-  font-size: 0.84rem;
-  letter-spacing: normal;
-  text-transform: none;
-}
 
-.role-team-leader.leader-role-sales .team-resellers-filter .button {
-  min-height: 42px;
-  align-self: end;
-  border-color: #171511;
-  border-radius: 8px;
-  background: #171511;
-  color: #fff;
-}
 
-.role-team-leader.leader-role-sales .team-reseller-list {
-  display: grid;
-  gap: 0;
-}
 
-.role-team-leader.leader-role-sales .team-reseller-card {
-  position: relative;
-  display: grid;
-  grid-template-columns: minmax(210px, 0.9fr) minmax(320px, 1.45fr) minmax(180px, 0.65fr);
-  gap: 24px;
-  align-items: center;
-  min-height: 126px;
-  padding: 20px 24px 20px 29px;
-  border-bottom: 1px solid rgba(72, 57, 24, 0.1);
-  background: #fffdfa;
-  transition: background-color 150ms ease, transform 150ms ease;
-}
 
-.role-team-leader.leader-role-sales .team-reseller-card:hover {
-  z-index: 1;
-  background: #fff9e9;
-  transform: translateX(2px);
-}
 
-.role-team-leader.leader-role-sales .team-reseller-status-rail {
-  position: absolute;
-  inset: 17px auto 17px 0;
-  width: 4px;
-  border-radius: 0 999px 999px 0;
-  background: #9b9488;
-}
 
-.role-team-leader.leader-role-sales .team-reseller-status-rail.is-active {
-  background: #2f9d62;
-}
 
-.role-team-leader.leader-role-sales .team-reseller-status-rail.is-pending {
-  background: var(--gold-deep);
-}
 
-.role-team-leader.leader-role-sales .team-reseller-status-rail.is-suspended,
-.role-team-leader.leader-role-sales .team-reseller-status-rail.is-inactive {
-  background: #b65348;
-}
 
-.role-team-leader.leader-role-sales .team-reseller-identity {
-  display: grid;
-  grid-template-columns: 44px minmax(0, 1fr);
-  gap: 13px;
-  align-items: center;
-}
 
-.role-team-leader.leader-role-sales .team-reseller-avatar {
-  display: grid;
-  width: 44px;
-  height: 44px;
-  place-items: center;
-  border: 1px solid rgba(215, 182, 33, 0.5);
-  border-radius: 11px;
-  background: #fff5c2;
-  color: #3b2e0e;
-  overflow: hidden;
-}
 
-.role-team-leader.leader-role-sales .team-reseller-avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: var(--profile-x, 50%) var(--profile-y, 50%);
-  transform: scale(var(--profile-scale, 1));
-  transform-origin: var(--profile-x, 50%) var(--profile-y, 50%);
-}
 
-.role-team-leader.leader-role-sales .team-reseller-identity > div > strong,
-.role-team-leader.leader-role-sales .team-reseller-identity > div > span {
-  display: block;
-}
 
-.role-team-leader.leader-role-sales .team-reseller-identity > div > strong {
-  color: #171511;
-  font-size: 0.98rem;
-}
 
-.role-team-leader.leader-role-sales .team-reseller-identity > div > span {
-  margin-top: 4px;
-  color: #776f63;
-  font-size: 0.8rem;
-}
 
-.role-team-leader.leader-role-sales .team-reseller-contact {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px 20px;
-  margin: 0;
-}
 
-.role-team-leader.leader-role-sales .team-reseller-contact div:last-child {
-  grid-column: 1 / -1;
-}
 
-.role-team-leader.leader-role-sales .team-reseller-contact dt {
-  margin-bottom: 3px;
-  color: #8b8376;
-  font-size: 0.62rem;
-  font-weight: 900;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-}
 
-.role-team-leader.leader-role-sales .team-reseller-contact dd {
-  margin: 0;
-  overflow: hidden;
-  color: #3f3a33;
-  font-size: 0.78rem;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
 
-.role-team-leader.leader-role-sales .team-reseller-contact a {
-  color: inherit;
-}
 
-.role-team-leader.leader-role-sales .team-reseller-activity {
-  display: grid;
-  justify-items: start;
-  gap: 6px;
-}
 
-.role-team-leader.leader-role-sales .team-reseller-account-state {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  color: #776f63;
-  font-size: 0.7rem;
-  text-transform: capitalize;
-}
 
-.role-team-leader.leader-role-sales .team-reseller-account-state svg {
-  width: 13px;
-  height: 13px;
-}
 
-.role-team-leader.leader-role-sales .team-reseller-activity > strong {
-  margin-top: 2px;
-  color: #171511;
-  font-size: 0.82rem;
-}
 
-.role-team-leader.leader-role-sales .team-reseller-activity > small {
-  color: #8b8376;
-  font-size: 0.7rem;
-}
 
-.role-team-leader.leader-role-sales .team-resellers-empty {
-  display: grid;
-  justify-items: center;
-  gap: 7px;
-  padding: 54px 24px;
-  color: #776f63;
-  text-align: center;
-}
 
-.role-team-leader.leader-role-sales .team-resellers-empty svg {
-  width: 30px;
-  height: 30px;
-  color: var(--gold-deep);
-}
 
-.role-team-leader.leader-role-sales .team-resellers-empty strong {
-  color: #171511;
-}
 
-.role-team-leader.leader-role-sales .team-resellers-ledger > .pagination {
-  margin: 0;
-  padding: 15px 20px;
-  border-top: 0;
-  background: #faf7ef;
-}
 
-@media (max-width: 1050px) {
-  .role-team-leader.leader-role-sales .team-reseller-card {
-    grid-template-columns: minmax(220px, 0.8fr) minmax(300px, 1.2fr);
-  }
 
-  .role-team-leader.leader-role-sales .team-reseller-activity {
-    grid-column: 1 / -1;
-    grid-template-columns: auto auto 1fr auto;
-    align-items: center;
-  }
-}
 
-@media (max-width: 720px) {
-  .role-team-leader.leader-role-sales .team-resellers-hero {
-    align-items: start;
-    flex-direction: column;
-    min-height: 0;
-    padding: 24px 20px;
-  }
 
-  .role-team-leader.leader-role-sales .team-resellers-total {
-    min-width: 0;
-    padding: 16px 0 0;
-    border-top: 1px solid rgba(255, 255, 255, 0.16);
-    border-left: 0;
-  }
 
-  .role-team-leader.leader-role-sales .team-reseller-card {
-    grid-template-columns: 1fr;
-    gap: 18px;
-    padding: 20px 20px 20px 25px;
-  }
 
-  .role-team-leader.leader-role-sales .team-reseller-contact {
-    grid-template-columns: 1fr;
-  }
 
-  .role-team-leader.leader-role-sales .team-reseller-contact div:last-child {
-    grid-column: auto;
-  }
 
-  .role-team-leader.leader-role-sales .team-reseller-activity {
-    grid-column: auto;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
 
-@media (prefers-reduced-motion: reduce) {
-  .role-team-leader.leader-role-sales .team-reseller-card {
-    transition: none;
-  }
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /* Inventory ledgers */
 .role-team-leader.section-logs,
@@ -2156,1093 +1908,296 @@
 }
 
 /* Sales portal: shared materials with layouts shaped around each workflow. */
-.role-team-leader.leader-role-sales:not(.section-dashboard) .portal-topbar {
-  min-height: 42px;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  box-shadow: none;
-  overflow: visible;
-}
-
-.role-team-leader.leader-role-sales:not(.section-dashboard) .portal-topbar::after {
-  display: none;
-}
-
-.role-team-leader.leader-role-sales:not(.section-dashboard) .notification-trigger {
-  border-color: rgba(72, 57, 24, 0.18);
-  background: #fffdfa;
-  color: #171511;
-  box-shadow: 0 10px 24px rgba(37, 28, 12, 0.08);
-}
-
-.role-team-leader.leader-role-sales .sales-page {
-  position: relative;
-  z-index: 3;
-  margin: 0;
-  animation: sales-page-enter 320ms ease both;
-}
-
-.role-team-leader.leader-role-sales .sales-page .panel {
-  border-color: rgba(72, 57, 24, 0.13);
-  border-radius: 14px;
-  background: #fffdfa;
-  box-shadow: 0 20px 48px rgba(37, 28, 12, 0.12);
-}
-
-.role-team-leader.leader-role-sales .sales-review-surface {
-  overflow: hidden;
-}
-
-.role-team-leader.leader-role-sales .sales-review-surface > .panel-heading {
-  align-items: end;
-  margin: -24px -24px 0;
-  padding: 28px 28px 22px;
-  border-bottom: 1px solid rgba(72, 57, 24, 0.12);
-  background: #fffdfa;
-}
-
-.role-team-leader.leader-role-sales .sales-review-surface > .panel-heading h2 {
-  margin: 0;
-  font-size: 1.55rem;
-  letter-spacing: -0.03em;
-}
-
-.role-team-leader.leader-role-sales .sales-review-surface > .filter-bar {
-  gap: 10px;
-  margin: 0 -24px;
-  padding: 15px 24px;
-  border-bottom: 1px solid rgba(72, 57, 24, 0.12);
-  background: #f7f2e7;
-}
-
-.role-team-leader.leader-role-sales .sales-review-surface > .filter-bar label {
-  flex: 1 1 190px;
-  color: #5f584d;
-  font-size: 0.7rem;
-  font-weight: 850;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.role-team-leader.leader-role-sales .sales-review-surface > .filter-bar input,
-.role-team-leader.leader-role-sales .sales-review-surface > .filter-bar select {
-  min-height: 42px;
-  border-color: rgba(72, 57, 24, 0.18);
-  border-radius: 8px;
-  background: #fff;
-  color: #171511;
-  font-size: 0.84rem;
-  letter-spacing: normal;
-  text-transform: none;
-}
-
-.role-team-leader.leader-role-sales .sales-review-surface > .filter-bar .button {
-  min-height: 42px;
-  align-self: end;
-  border-color: #171511;
-  border-radius: 8px;
-  background: #171511;
-  color: #fff;
-}
-
-.role-team-leader.leader-role-sales .sales-review-surface > .table-wrap,
-.role-team-leader.leader-role-sales .sales-review-surface > [data-async-filter-results] > .table-wrap {
-  margin-top: 20px;
-  border: 0;
-  border-radius: 0;
-}
-
-.role-team-leader.leader-role-sales .sales-review-surface table {
-  min-width: 780px;
-}
-
-.role-team-leader.leader-role-sales .sales-review-surface th {
-  border-block: 1px solid rgba(72, 57, 24, 0.12);
-  background: #faf6ec;
-  color: #6c6458;
-  font-size: 0.66rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.role-team-leader.leader-role-sales .sales-review-surface td {
-  font-size: 0.82rem;
-}
-
-.role-team-leader.leader-role-sales .order-review-items {
-  display: grid;
-  gap: 6px;
-  min-width: 0;
-}
-
-.role-team-leader.leader-role-sales .order-review-items span {
-  overflow-wrap: anywhere;
-}
-
-.role-team-leader.leader-role-sales .order-review-items strong {
-  color: var(--primary);
-}
-
-.role-team-leader.leader-role-sales .order-action-modal-card {
-  grid-template-rows: none;
-  justify-items: center;
-  gap: 16px;
-  width: min(460px, 100%);
-  max-height: none;
-  padding: 28px;
-  overflow: visible;
-  border-color: rgba(215, 182, 33, 0.62);
-  border-radius: 18px;
-  background:
-    linear-gradient(145deg, rgba(215, 182, 33, 0.11), transparent 42%),
-    var(--surface);
-  text-align: center;
-}
-
-.role-team-leader.leader-role-sales .order-action-modal-icon {
-  display: grid;
-  width: 58px;
-  height: 58px;
-  place-items: center;
-  border: 1px solid rgba(170, 134, 22, 0.28);
-  border-radius: 50%;
-  background: rgba(215, 182, 33, 0.13);
-  color: var(--gold-deep);
-}
-
-.role-team-leader.leader-role-sales .order-action-modal-icon svg {
-  width: 27px;
-  height: 27px;
-}
-
-.role-team-leader.leader-role-sales .order-action-modal-copy h2 {
-  margin: 3px 0 6px;
-  color: var(--primary);
-  font-size: clamp(1.25rem, 3vw, 1.55rem);
-  line-height: 1.2;
-}
-
-.role-team-leader.leader-role-sales .order-action-modal-copy p {
-  max-width: 340px;
-  margin: 0;
-  color: var(--text-light);
-  font-size: 0.9rem;
-}
-
-.role-team-leader.leader-role-sales .order-rejection-field {
-  display: grid;
-  width: 100%;
-  gap: 8px;
-  text-align: left;
-}
-
-.role-team-leader.leader-role-sales .order-rejection-field[hidden] {
-  display: none;
-}
-
-.role-team-leader.leader-role-sales .order-rejection-field label {
-  color: var(--primary);
-  font-size: 0.82rem;
-  font-weight: 850;
-}
-
-.role-team-leader.leader-role-sales .order-rejection-field textarea {
-  width: 100%;
-  min-height: 118px;
-  padding: 12px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: #fffdf8;
-  color: var(--primary);
-  font: inherit;
-  line-height: 1.5;
-  resize: vertical;
-}
-
-.role-team-leader.leader-role-sales .order-rejection-field textarea:focus {
-  border-color: #9b493f;
-  outline: 0;
-  box-shadow: 0 0 0 3px rgba(155, 73, 63, 0.14);
-}
-
-.role-team-leader.leader-role-sales .order-rejection-field small {
-  color: var(--text-light);
-  line-height: 1.45;
-}
-
-.role-team-leader.leader-role-sales .order-action-modal-actions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  width: 100%;
-  gap: 10px;
-}
-
-.role-team-leader.leader-role-sales .order-action-modal-actions .button {
-  width: 100%;
-  justify-content: center;
-}
-
-.role-team-leader.leader-role-sales .sales-review-surface tbody tr {
-  transition: background-color 150ms ease;
-}
-
-.role-team-leader.leader-role-sales .sales-review-surface tbody tr:hover {
-  background: rgba(215, 182, 33, 0.055);
-}
-
-.role-team-leader.leader-role-sales .sales-review-surface .table-actions {
-  flex-wrap: nowrap;
-}
-
-.role-team-leader.leader-role-sales .sales-review-surface .pagination {
-  margin: 18px -24px -24px;
-  padding: 15px 24px;
-  border-top: 1px solid rgba(72, 57, 24, 0.12);
-  background: #faf7ef;
-}
-
-.role-team-leader.leader-role-sales .sales-review-surface .pagination a {
-  border-radius: 7px;
-  background: #171511;
-  color: #fff;
-}
-
-.role-team-leader.leader-role-sales .sales-reports-page {
-  display: grid;
-  gap: 18px;
-}
-
-.role-team-leader.leader-role-sales .sales-report-builder {
-  grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.65fr);
-  gap: 18px;
-}
-
-.role-team-leader.leader-role-sales .sales-report-compose > h2,
-.role-team-leader.leader-role-sales .sales-report-history > h2 {
-  font-size: 1.4rem;
-  letter-spacing: -0.025em;
-}
-
-.role-team-leader.leader-role-sales .sales-report-compose .form-panel {
-  gap: 14px;
-}
-
-.role-team-leader.leader-role-sales .sales-report-compose [data-team-report-totals] {
-  margin-inline: -24px;
-  padding: 18px 24px;
-  border-block: 1px solid rgba(72, 57, 24, 0.12);
-  background: #f7f2e7;
-}
-
-.role-team-leader.leader-role-sales .sales-report-compose [data-team-report-totals] input {
-  border: 0;
-  background: transparent;
-  color: #171511;
-  font-size: 1.15rem;
-  font-weight: 900;
-}
-
-.role-team-leader.leader-role-sales .sales-report-compose .button.primary {
-  justify-self: start;
-  border-radius: 8px;
-}
-
-.role-team-leader.leader-role-sales .sales-report-compose .report-order-items {
-  margin-top: 26px;
-  padding-top: 22px;
-  border-top: 1px solid rgba(72, 57, 24, 0.12);
-}
-
-.role-team-leader.leader-role-sales .sales-report-compose .report-order-items h3 {
-  margin: 3px 0 0;
-  color: var(--review-ink, #171511);
-  font-size: 1.05rem;
-}
-
-.role-team-leader.leader-role-sales .report-order-items-heading {
-  display: flex;
-  align-items: end;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 14px;
-}
-
-.role-team-leader.leader-role-sales .report-order-count {
-  flex: 0 0 auto;
-  padding: 6px 10px;
-  border: 1px solid rgba(170, 134, 22, 0.25);
-  border-radius: 999px;
-  background: rgba(215, 182, 33, 0.1);
-  color: var(--review-ink, #171511);
-  font-size: 0.7rem;
-  font-weight: 850;
-}
-
-.role-team-leader.leader-role-sales .report-order-manifest {
-  display: grid;
-  gap: 10px;
-}
-
-.role-team-leader.leader-role-sales .report-order-card[hidden],
-.role-team-leader.leader-role-sales .report-order-more[hidden] {
-  display: none;
-}
-
-.role-team-leader.leader-role-sales .report-order-more {
-  display: flex;
-  width: 100%;
-  min-height: 48px;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin-top: 12px;
-  border: 1px solid rgba(170, 134, 22, 0.28);
-  border-radius: 10px;
-  background: #faf7ef;
-  color: var(--review-ink, #171511);
-  font: inherit;
-  font-size: 0.76rem;
-  font-weight: 850;
-  cursor: pointer;
-  touch-action: manipulation;
-  transition: border-color 180ms ease, background-color 180ms ease, transform 120ms ease;
-}
-
-.role-team-leader.leader-role-sales .report-order-more:hover {
-  border-color: rgba(170, 134, 22, 0.55);
-  background: rgba(215, 182, 33, 0.12);
-}
-
-.role-team-leader.leader-role-sales .report-order-more:active {
-  transform: scale(0.992);
-}
-
-.role-team-leader.leader-role-sales .report-order-more:focus-visible {
-  outline: 3px solid rgba(215, 182, 33, 0.4);
-  outline-offset: 2px;
-}
-
-.role-team-leader.leader-role-sales .report-order-more svg {
-  width: 17px;
-  height: 17px;
-}
-
-.role-team-leader.leader-role-sales .report-order-card {
-  overflow: clip;
-  border: 1px solid var(--review-line, rgba(72, 57, 24, 0.16));
-  border-radius: 12px;
-  background: #fff;
-  box-shadow: 0 6px 18px rgba(37, 28, 12, 0.045);
-  transition: border-color 180ms ease, box-shadow 180ms ease;
-}
-
-.role-team-leader.leader-role-sales .report-order-card:hover,
-.role-team-leader.leader-role-sales .report-order-card[open] {
-  border-color: rgba(170, 134, 22, 0.42);
-  box-shadow: 0 10px 26px rgba(37, 28, 12, 0.08);
-}
-
-.role-team-leader.leader-role-sales .report-order-card-summary {
-  display: grid;
-  grid-template-columns: minmax(160px, 1fr) auto minmax(105px, auto) 34px;
-  gap: 14px;
-  align-items: center;
-  min-height: 84px;
-  padding: 14px 16px;
-  cursor: pointer;
-  list-style: none;
-  touch-action: manipulation;
-}
-
-.role-team-leader.leader-role-sales .report-order-card-summary::-webkit-details-marker {
-  display: none;
-}
-
-.role-team-leader.leader-role-sales .report-order-card-summary:focus-visible {
-  outline: 3px solid rgba(215, 182, 33, 0.4);
-  outline-offset: -3px;
-}
-
-.role-team-leader.leader-role-sales .report-order-identity {
-  display: grid;
-  gap: 2px;
-  min-width: 0;
-}
-
-.role-team-leader.leader-role-sales .report-order-number,
-.role-team-leader.leader-role-sales .report-order-customer {
-  overflow: hidden;
-  color: var(--review-ink, #171511);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.role-team-leader.leader-role-sales .report-order-number {
-  font-size: 0.84rem;
-  font-weight: 900;
-}
-
-.role-team-leader.leader-role-sales .report-order-customer,
-.role-team-leader.leader-role-sales .report-order-product-count {
-  color: var(--review-muted, #746d61);
-  font-size: 0.72rem;
-}
-
-.role-team-leader.leader-role-sales .report-order-preview {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-}
-
-.role-team-leader.leader-role-sales .report-order-preview img,
-.role-team-leader.leader-role-sales .report-order-preview-more {
-  width: 44px;
-  height: 44px;
-  border: 2px solid #fff;
-  border-radius: 9px;
-  background: var(--review-wash, #f7f2e7);
-  box-shadow: 0 0 0 1px var(--review-line, rgba(72, 57, 24, 0.16));
-}
-
-.role-team-leader.leader-role-sales .report-order-preview img {
-  object-fit: cover;
-}
-
-.role-team-leader.leader-role-sales .report-order-preview > * + * {
-  margin-left: -8px;
-}
-
-.role-team-leader.leader-role-sales .report-order-preview-more {
-  display: grid;
-  place-items: center;
-  color: var(--review-ink, #171511);
-  font-size: 0.7rem;
-  font-weight: 900;
-}
-
-.role-team-leader.leader-role-sales .report-order-total,
-.role-team-leader.leader-role-sales .report-order-line-total {
-  display: grid;
-  gap: 2px;
-  justify-items: end;
-  text-align: right;
-}
-
-.role-team-leader.leader-role-sales .report-order-total small,
-.role-team-leader.leader-role-sales .report-order-line-total small {
-  color: var(--review-muted, #746d61);
-  font-size: 0.62rem;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.role-team-leader.leader-role-sales .report-order-total strong,
-.role-team-leader.leader-role-sales .report-order-line-total strong {
-  color: var(--review-ink, #171511);
-  font-size: 0.84rem;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-
-.role-team-leader.leader-role-sales .report-order-chevron {
-  display: grid;
-  width: 34px;
-  height: 34px;
-  place-items: center;
-  border-radius: 50%;
-  color: var(--review-muted, #746d61);
-  transition: transform 180ms ease, background-color 180ms ease, color 180ms ease;
-}
-
-.role-team-leader.leader-role-sales .report-order-chevron svg {
-  width: 17px;
-  height: 17px;
-}
-
-.role-team-leader.leader-role-sales .report-order-card[open] .report-order-chevron {
-  transform: rotate(180deg);
-  background: var(--review-ink, #171511);
-  color: var(--review-gold, #d7b621);
-}
-
-.role-team-leader.leader-role-sales .report-order-card-body {
-  padding: 14px;
-  border-top: 1px solid var(--review-line, rgba(72, 57, 24, 0.16));
-  background: var(--review-wash, #f7f2e7);
-}
-
-.role-team-leader.leader-role-sales .report-order-product-list {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.role-team-leader.leader-role-sales .report-order-product-line {
-  display: grid;
-  grid-template-columns: 58px minmax(0, 1fr) auto;
-  gap: 11px;
-  align-items: center;
-  min-width: 0;
-  min-height: 78px;
-  padding: 9px 11px;
-  border: 1px solid var(--review-line, rgba(72, 57, 24, 0.16));
-  border-radius: 10px;
-  background: #fff;
-}
-
-.role-team-leader.leader-role-sales .report-order-product-line > img {
-  width: 58px;
-  height: 58px;
-  border-radius: 8px;
-  object-fit: cover;
-  background: var(--review-wash, #f7f2e7);
-}
-
-.role-team-leader.leader-role-sales .report-order-product-copy {
-  display: grid;
-  gap: 4px;
-  min-width: 0;
-}
-
-.role-team-leader.leader-role-sales .report-order-product-copy strong {
-  overflow: hidden;
-  color: var(--review-ink, #171511);
-  font-size: 0.78rem;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.role-team-leader.leader-role-sales .report-order-product-copy small {
-  color: var(--review-muted, #746d61);
-  font-size: 0.69rem;
-}
-
-.role-team-leader.leader-role-sales .report-order-empty {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 9px;
-  min-height: 86px;
-  padding: 18px;
-  border: 1px dashed rgba(72, 57, 24, 0.2);
-  border-radius: 11px;
-  background: #faf7ef;
-  color: var(--review-muted, #746d61);
-  font-size: 0.78rem;
-}
-
-.role-team-leader.leader-role-sales .report-order-empty svg {
-  width: 18px;
-  height: 18px;
-  color: var(--review-gold-deep, #9d7b05);
-}
-
-.role-team-leader.leader-role-sales .sales-page .sales-report-history {
-  border-color: rgba(215, 182, 33, 0.24);
-  background: #171511;
-  color: #fff;
-}
-
-.role-team-leader.leader-role-sales .sales-report-history h2 {
-  color: #fff;
-}
-
-.role-team-leader.leader-role-sales .sales-report-history .filter-bar label {
-  color: rgba(255, 255, 255, 0.6);
-}
-
-.role-team-leader.leader-role-sales .sales-report-history .filter-bar input {
-  border-color: rgba(255, 255, 255, 0.15);
-  background: rgba(255, 255, 255, 0.08);
-  color: #fff;
-}
-
-.role-team-leader.leader-role-sales .sales-report-history .filter-bar input::placeholder {
-  color: rgba(255, 255, 255, 0.72);
-  opacity: 1;
-}
-
-.role-team-leader.leader-role-sales .sales-report-history .filter-bar .button {
-  border-color: var(--gold);
-  color: var(--gold);
-}
-
-.role-team-leader.leader-role-sales .sales-report-history .stack-list {
-  gap: 0;
-}
-
-.role-team-leader.leader-role-sales .sales-report-history .stack-item {
-  min-height: 78px;
-  padding: 14px 0;
-  border: 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 0;
-  background: transparent;
-}
-
-.role-team-leader.leader-role-sales .sales-report-history .stack-item strong {
-  color: #fff;
-}
-
-.role-team-leader.leader-role-sales .sales-report-history .stack-item span {
-  color: rgba(255, 255, 255, 0.55);
-}
-
-.role-team-leader.leader-role-sales .sales-report-history .stack-item em {
-  color: var(--gold);
-}
-
-.role-team-leader.leader-role-sales .sales-report-empty {
-  display: grid;
-  justify-items: start;
-  gap: 6px;
-  padding: 24px 0 10px;
-  color: rgba(255, 255, 255, 0.72);
-}
-
-.role-team-leader.leader-role-sales .sales-report-empty svg {
-  width: 24px;
-  height: 24px;
-  margin-bottom: 4px;
-  color: var(--gold);
-}
-
-.role-team-leader.leader-role-sales .sales-report-empty strong {
-  color: #fff;
-}
-
-.role-team-leader.leader-role-sales .sales-report-empty span {
-  line-height: 1.5;
-}
-
-.role-team-leader.leader-role-sales .sales-report-pagination {
-  justify-content: space-between;
-  padding-top: 14px;
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
-  color: rgba(255, 255, 255, 0.72);
-}
-
-.role-team-leader.leader-role-sales .sales-report-pagination a {
-  min-height: 44px;
-  border-color: var(--gold);
-  background: var(--gold);
-  color: #171511;
-}
-
-.role-team-leader.leader-role-sales .sales-report-rejections > .panel-heading {
-  align-items: end;
-  margin-bottom: 16px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid rgba(72, 57, 24, 0.12);
-}
-
-.role-team-leader.leader-role-sales .sales-report-rejections > .panel-heading h2 {
-  margin-top: 4px;
-}
-
-.role-team-leader.leader-role-sales .rejected-order-kicker {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  color: #844037;
-  font-size: 0.72rem;
-  font-weight: 900;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-}
-
-.role-team-leader.leader-role-sales .rejected-order-kicker::before {
-  width: 8px;
-  height: 8px;
-  border-radius: 2px;
-  background: #9b493f;
-  content: "";
-}
-
-.role-team-leader.leader-role-sales .rejected-order-list {
-  display: grid;
-  gap: 12px;
-}
-
-.role-team-leader.leader-role-sales .rejected-order-card {
-  overflow: hidden;
-  border: 1px solid rgba(72, 57, 24, 0.14);
-  border-radius: 14px;
-  background: #fffdf8;
-}
-
-.role-team-leader.leader-role-sales .rejected-order-header {
-  display: grid;
-  grid-template-columns: minmax(190px, 1fr) auto;
-  align-items: center;
-  gap: 24px;
-  padding: 18px 20px;
-  border-left: 4px solid #9b493f;
-  background: #faf6ec;
-}
-
-.role-team-leader.leader-role-sales .rejected-order-identity span,
-.role-team-leader.leader-role-sales .rejected-order-meta dt,
-.role-team-leader.leader-role-sales .rejected-order-details h4 {
-  color: var(--text-light);
-  font-size: 0.7rem;
-  font-weight: 900;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.role-team-leader.leader-role-sales .rejected-order-identity h3 {
-  margin: 3px 0 0;
-  font-size: 1.05rem;
-}
-
-.role-team-leader.leader-role-sales .rejected-order-meta {
-  display: grid;
-  grid-template-columns: minmax(140px, 1fr) minmax(110px, 0.7fr);
-  gap: 24px;
-  margin: 0;
-}
-
-.role-team-leader.leader-role-sales .rejected-order-meta div {
-  min-width: 0;
-}
-
-.role-team-leader.leader-role-sales .rejected-order-meta dd {
-  margin: 4px 0 0;
-  color: #171511;
-  font-size: 0.92rem;
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-}
-
-.role-team-leader.leader-role-sales .rejected-order-details {
-  display: grid;
-  grid-template-columns: minmax(0, 2.2fr) minmax(180px, 0.8fr);
-}
-
-.role-team-leader.leader-role-sales .rejected-order-products,
-.role-team-leader.leader-role-sales .rejected-order-notes {
-  padding: 18px 20px 20px;
-}
-
-.role-team-leader.leader-role-sales .rejected-order-notes {
-  border-left: 1px solid rgba(72, 57, 24, 0.12);
-}
-
-.role-team-leader.leader-role-sales .rejected-order-products ul {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px 18px;
-  margin: 12px 0 0;
-  padding: 0;
-  list-style: none;
-}
-
-.role-team-leader.leader-role-sales .rejected-order-products li {
-  position: relative;
-  padding-left: 15px;
-  line-height: 1.45;
-}
-
-.role-team-leader.leader-role-sales .rejected-order-products li::before {
-  position: absolute;
-  top: 0.62em;
-  left: 0;
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: var(--gold);
-  content: "";
-}
-
-.role-team-leader.leader-role-sales .rejected-order-notes p {
-  margin: 12px 0 0;
-  color: var(--text-light);
-  line-height: 1.5;
-}
-
-.role-team-leader.leader-role-sales .rejected-orders-empty {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-height: 92px;
-  padding: 18px 20px;
-  border: 1px dashed rgba(72, 57, 24, 0.2);
-  border-radius: 14px;
-  color: var(--text-light);
-  background: #faf8f2;
-}
-
-.role-team-leader.leader-role-sales .rejected-orders-empty svg {
-  flex: 0 0 auto;
-  width: 24px;
-  height: 24px;
-  color: #6f7652;
-}
-
-.role-team-leader.leader-role-sales .rejected-orders-empty div {
-  display: grid;
-  gap: 3px;
-}
-
-.role-team-leader.leader-role-sales .rejected-orders-empty strong {
-  color: #171511;
-}
-
-.role-team-leader.leader-role-sales .sales-profile-page {
-  grid-template-columns: minmax(280px, 0.72fr) minmax(0, 1.28fr);
-  align-items: stretch;
-}
-
-.role-team-leader.leader-role-sales .sales-page .sales-profile-identity {
-  border-color: rgba(215, 182, 33, 0.24);
-  background: #171511;
-  color: #fff;
-}
-
-.role-team-leader.leader-role-sales .sales-profile-identity .panel-heading {
-  align-items: start;
-  flex-direction: column;
-  padding-bottom: 18px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-}
-
-.role-team-leader.leader-role-sales .sales-profile-identity h2 {
-  color: #fff;
-  font-size: 1.5rem;
-}
-
-.role-team-leader.leader-role-sales .sales-profile-identity .hint {
-  color: rgba(255, 255, 255, 0.55);
-  text-align: left;
-}
-
-.role-team-leader.leader-role-sales .sales-profile-identity .profile-details div {
-  border-color: rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.06);
-}
-
-.role-team-leader.leader-role-sales .sales-profile-identity .profile-details dt {
-  color: var(--gold);
-}
-
-.role-team-leader.leader-role-sales .sales-profile-identity .profile-details dd {
-  color: #fff;
-}
-
-.role-team-leader.leader-role-sales .sales-profile-security .panel-heading {
-  align-items: start;
-  flex-direction: column;
-  padding-bottom: 18px;
-  border-bottom: 1px solid rgba(72, 57, 24, 0.12);
-}
-
-.role-team-leader.leader-role-sales .sales-profile-security .panel-heading .hint {
-  max-width: 680px;
-  text-align: left;
-}
-
-.role-team-leader.leader-role-sales .sales-profile-security .form-panel {
-  max-width: 680px;
-}
-
-.role-team-leader.leader-role-sales .sales-live-chat-page {
-  gap: 10px;
-}
-
-.role-team-leader.leader-role-sales .sales-live-chat-page .live-chat-command-bar {
-  min-height: 74px;
-  padding: 14px 18px;
-  border: 1px solid rgba(72, 57, 24, 0.13);
-  border-radius: 14px;
-  background: #fffdfa;
-  box-shadow: 0 16px 38px rgba(37, 28, 12, 0.1);
-}
-
-.role-team-leader.leader-role-sales .sales-live-chat-page .live-chat-layout {
-  box-shadow: 0 20px 48px rgba(37, 28, 12, 0.12);
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 @keyframes sales-page-enter {
   from { opacity: 0; transform: translateY(7px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-@media (max-width: 1080px) {
-  .role-team-leader.leader-role-sales .sales-report-builder,
-  .role-team-leader.leader-role-sales .sales-profile-page {
-    grid-template-columns: 1fr;
-  }
-}
 
-@media (max-width: 860px) {
-  .role-team-leader.leader-role-sales:not(.section-dashboard) .portal-topbar {
-    position: sticky;
-    top: 0;
-    min-height: auto;
-    margin: 0 -14px;
-    padding: calc(12px + env(safe-area-inset-top)) 14px 12px;
-    border: 0;
-    border-bottom: 1px solid rgba(215, 182, 33, 0.46);
-    border-radius: 0;
-    background: var(--sidebar);
-    box-shadow: 0 12px 28px rgba(13, 12, 11, 0.18);
-    overflow: visible;
-  }
 
-  .role-team-leader.leader-role-sales:not(.section-dashboard) .portal-topbar::after {
-    display: none;
-  }
 
-  .role-team-leader.leader-role-sales:not(.section-dashboard) .portal-topbar h1 {
-    margin-top: 0;
-    font-size: 1.12rem;
-    letter-spacing: normal;
-  }
 
-  .role-team-leader.leader-role-sales .sales-page {
-    margin: 0;
-    padding-top: 16px;
-  }
 
-  .role-team-leader.leader-role-sales .sales-review-surface > .panel-heading {
-    margin: -14px -14px 0;
-    padding: 20px 16px 16px;
-  }
 
-  .role-team-leader.leader-role-sales .sales-review-surface > .filter-bar {
-    margin-inline: -14px;
-    padding-inline: 14px;
-  }
 
-  .role-team-leader.leader-role-sales .sales-review-surface .pagination {
-    margin: 16px -14px -14px;
-    padding-inline: 14px;
-  }
 
-  .role-team-leader.leader-role-sales .sales-report-compose [data-team-report-totals] {
-    margin-inline: -14px;
-    padding-inline: 14px;
-  }
 
-  .role-team-leader.leader-role-sales .report-order-product-list {
-    grid-template-columns: 1fr;
-  }
-
-  .role-team-leader.leader-role-sales .rejected-order-header,
-  .role-team-leader.leader-role-sales .rejected-order-details {
-    grid-template-columns: 1fr;
-  }
-
-  .role-team-leader.leader-role-sales .rejected-order-notes {
-    border-top: 1px solid rgba(72, 57, 24, 0.12);
-    border-left: 0;
-  }
-}
-
-@media (max-width: 640px) {
-  .role-team-leader.leader-role-sales .report-order-card-summary {
-    grid-template-columns: minmax(0, 1fr) auto 34px;
-    gap: 10px;
-    padding: 13px;
-  }
-
-  .role-team-leader.leader-role-sales .report-order-preview {
-    grid-column: 1 / -1;
-    grid-row: 2;
-    justify-content: flex-start;
-  }
-
-  .role-team-leader.leader-role-sales .report-order-total {
-    grid-column: 2;
-    grid-row: 1;
-  }
-
-  .role-team-leader.leader-role-sales .report-order-chevron {
-    grid-column: 3;
-    grid-row: 1;
-  }
-
-  .role-team-leader.leader-role-sales .report-order-product-line {
-    grid-template-columns: 54px minmax(0, 1fr);
-  }
-
-  .role-team-leader.leader-role-sales .report-order-product-line > img {
-    width: 54px;
-    height: 54px;
-  }
-
-  .role-team-leader.leader-role-sales .report-order-line-total {
-    grid-column: 2;
-    justify-items: start;
-    text-align: left;
-  }
-}
-
-@media (max-width: 560px) {
-  .role-team-leader.leader-role-sales .sales-report-rejections > .panel-heading {
-    align-items: start;
-    flex-direction: column;
-  }
-
-  .role-team-leader.leader-role-sales .sales-report-rejections > .panel-heading .hint {
-    max-width: none;
-    text-align: left;
-  }
-
-  .role-team-leader.leader-role-sales .rejected-order-header {
-    gap: 16px;
-    padding: 16px;
-  }
-
-  .role-team-leader.leader-role-sales .rejected-order-meta {
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    padding-top: 14px;
-    border-top: 1px solid rgba(72, 57, 24, 0.12);
-  }
-
-  .role-team-leader.leader-role-sales .rejected-order-products,
-  .role-team-leader.leader-role-sales .rejected-order-notes {
-    padding: 16px;
-  }
-
-  .role-team-leader.leader-role-sales .rejected-order-products ul {
-    grid-template-columns: 1fr;
-  }
-
-  .role-team-leader.leader-role-sales .sales-review-surface > .panel-heading {
-    align-items: start;
-    flex-direction: column;
-  }
-
-  .role-team-leader.leader-role-sales .sales-review-surface > .panel-heading .hint {
-    max-width: none;
-    text-align: left;
-  }
-
-  .role-team-leader.leader-role-sales .sales-review-surface > .filter-bar label,
-  .role-team-leader.leader-role-sales .sales-review-surface > .filter-bar .button {
-    width: 100%;
-    flex-basis: 100%;
-  }
-
-  .role-team-leader.leader-role-sales .sales-live-chat-page .live-chat-command-bar {
-    padding: 12px;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .role-team-leader.leader-role-sales .sales-page {
-    animation: none;
-  }
-
-  .role-team-leader.leader-role-sales .sales-review-surface tbody tr {
-    transition: none;
-  }
-}
 
 .role-team-leader .portal-topbar h1 {
   max-width: 760px;
@@ -3513,6 +2468,17 @@
   padding: 16px 22px;
   border-top: 1px solid rgba(215, 201, 154, 0.62);
   background: #fffaf0;
+}
+
+/* Keep the dispatch confirmation available on short screens. */
+#inventory-modal-dispatch-stock .inventory-modal-actions {
+  position: sticky;
+  bottom: -22px;
+  z-index: 2;
+}
+
+@media (max-width: 700px) {
+  #inventory-modal-dispatch-stock .inventory-modal-actions { bottom: -16px; }
 }
 
 .role-team-leader .inventory-form-section-head {
@@ -5892,661 +4858,153 @@
 }
 
 /* Sales order review ledger */
-.role-team-leader.leader-role-sales .sales-order-ledger {
-  --review-ink: #171511;
-  --review-muted: #6c6458;
-  --review-line: rgba(72, 57, 24, 0.14);
-  --review-wash: #f7f2e7;
-  --review-paper: #fffdfa;
-  --review-gold: #d7b621;
-  padding: 0;
-  background:
-    linear-gradient(180deg, rgba(215, 182, 33, 0.075), transparent 190px),
-    var(--review-paper);
-}
-
-.role-team-leader.leader-role-sales .sales-order-ledger-heading {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 24px;
-  padding: 28px;
-  border-bottom: 1px solid var(--review-line);
-}
-
-.role-team-leader.leader-role-sales .sales-order-ledger-heading h2,
-.role-team-leader.leader-role-sales .sales-order-ledger-heading p {
-  margin: 0;
-}
-
-.role-team-leader.leader-role-sales .sales-order-ledger-heading h2 {
-  margin-top: 4px;
-  color: var(--review-ink);
-  font-size: clamp(1.45rem, 2.5vw, 1.9rem);
-  letter-spacing: -0.035em;
-}
-
-.role-team-leader.leader-role-sales .sales-order-ledger-heading p {
-  max-width: 610px;
-  margin-top: 7px;
-  color: var(--review-muted);
-  line-height: 1.5;
-}
-
-.role-team-leader.leader-role-sales .sales-order-ledger-count {
-  display: grid;
-  min-width: 128px;
-  padding: 11px 14px;
-  border: 1px solid var(--review-line);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.72);
-  text-align: right;
-}
-
-.role-team-leader.leader-role-sales .sales-order-ledger-count strong {
-  color: var(--review-ink);
-  font-size: 1.3rem;
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-}
-
-.role-team-leader.leader-role-sales .sales-order-ledger-count span {
-  margin-top: 4px;
-  color: var(--review-muted);
-  font-size: 0.68rem;
-  font-weight: 800;
-}
-
-.role-team-leader.leader-role-sales .sales-order-toolbar {
-  display: grid;
-  grid-template-columns: minmax(260px, 1fr) minmax(170px, 0.34fr) minmax(170px, 0.34fr);
-  gap: 10px;
-  padding: 15px 28px;
-  border-bottom: 1px solid var(--review-line);
-  background: var(--review-wash);
-}
-
-.role-team-leader.leader-role-sales .sales-order-search,
-.role-team-leader.leader-role-sales .sales-order-select {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.role-team-leader.leader-role-sales .sales-order-search > svg,
-.role-team-leader.leader-role-sales .sales-order-select > svg {
-  position: absolute;
-  left: 13px;
-  z-index: 1;
-  width: 17px;
-  height: 17px;
-  color: var(--review-muted);
-  pointer-events: none;
-}
-
-.role-team-leader.leader-role-sales .sales-order-toolbar input,
-.role-team-leader.leader-role-sales .sales-order-toolbar select {
-  width: 100%;
-  min-height: 44px;
-  padding-left: 40px;
-  border: 1px solid rgba(72, 57, 24, 0.19);
-  border-radius: 9px;
-  background: #fff;
-  color: var(--review-ink);
-  font: inherit;
-  font-size: 0.84rem;
-  box-shadow: 0 4px 12px rgba(37, 28, 12, 0.035);
-}
-
-.role-team-leader.leader-role-sales .sales-order-results {
-  padding: 22px 28px 28px;
-}
-
-.role-team-leader.leader-role-sales .sales-order-card-list {
-  display: grid;
-  gap: 14px;
-}
-
-.role-team-leader.leader-role-sales .sales-order-card {
-  overflow: clip;
-  border: 1px solid var(--review-line);
-  border-radius: 14px;
-  background: #fff;
-  box-shadow: 0 7px 22px rgba(37, 28, 12, 0.05);
-  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
-}
-
-.role-team-leader.leader-role-sales .sales-order-card:hover,
-.role-team-leader.leader-role-sales .sales-order-card[open] {
-  border-color: rgba(170, 134, 22, 0.42);
-  box-shadow: 0 13px 32px rgba(37, 28, 12, 0.09);
-}
-
-.role-team-leader.leader-role-sales .sales-order-card-summary {
-  display: grid;
-  grid-template-columns: minmax(245px, 1fr) auto minmax(115px, auto) 38px;
-  gap: 22px;
-  align-items: center;
-  min-height: 106px;
-  padding: 18px 20px;
-  cursor: pointer;
-  list-style: none;
-  touch-action: manipulation;
-}
-
-.role-team-leader.leader-role-sales .sales-order-card-summary::-webkit-details-marker {
-  display: none;
-}
-
-.role-team-leader.leader-role-sales .sales-order-card-summary:focus-visible {
-  outline: 3px solid rgba(215, 182, 33, 0.38);
-  outline-offset: -3px;
-}
-
-.role-team-leader.leader-role-sales .sales-order-identity {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px 9px;
-  min-width: 0;
-}
-
-.role-team-leader.leader-role-sales .sales-order-number {
-  flex: 0 0 100%;
-  color: var(--review-ink);
-  font-size: 0.95rem;
-  font-weight: 900;
-}
-
-.role-team-leader.leader-role-sales .sales-order-identity > strong {
-  overflow: hidden;
-  max-width: 330px;
-  color: var(--review-ink);
-  font-size: 0.8rem;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.role-team-leader.leader-role-sales .sales-order-identity time {
-  color: var(--review-muted);
-  font-size: 0.75rem;
-}
-
-.role-team-leader.leader-role-sales .sales-order-identity .status-badge {
-  padding: 5px 9px;
-  font-size: 0.66rem;
-}
-
-.role-team-leader.leader-role-sales .sales-order-preview {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 7px;
-}
-
-.role-team-leader.leader-role-sales .sales-order-preview img,
-.role-team-leader.leader-role-sales .sales-order-preview > span {
-  width: 48px;
-  height: 48px;
-  border: 1px solid var(--review-line);
-  border-radius: 9px;
-  background: var(--review-wash);
-}
-
-.role-team-leader.leader-role-sales .sales-order-preview img {
-  object-fit: cover;
-}
-
-.role-team-leader.leader-role-sales .sales-order-preview > span {
-  display: grid;
-  place-items: center;
-  color: var(--review-ink);
-  font-size: 0.76rem;
-  font-weight: 850;
-}
-
-.role-team-leader.leader-role-sales .sales-order-total {
-  display: grid;
-  justify-items: end;
-  min-width: 115px;
-}
-
-.role-team-leader.leader-role-sales .sales-order-total small {
-  color: var(--review-muted);
-  font-size: 0.67rem;
-}
-
-.role-team-leader.leader-role-sales .sales-order-total strong {
-  margin-top: 3px;
-  color: var(--review-ink);
-  font-size: 1.08rem;
-  font-variant-numeric: tabular-nums;
-}
-
-.role-team-leader.leader-role-sales .sales-order-chevron {
-  display: grid;
-  width: 38px;
-  height: 38px;
-  place-items: center;
-  border-radius: 50%;
-  color: var(--review-muted);
-  transition: transform 180ms ease, background-color 180ms ease, color 180ms ease;
-}
-
-.role-team-leader.leader-role-sales .sales-order-card[open] .sales-order-chevron {
-  transform: rotate(180deg);
-  background: var(--review-ink);
-  color: var(--review-gold);
-}
-
-.role-team-leader.leader-role-sales .sales-order-chevron svg {
-  width: 18px;
-  height: 18px;
-}
-
-.role-team-leader.leader-role-sales .sales-order-card-body {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(350px, 410px);
-  border-top: 1px solid var(--review-line);
-  background: color-mix(in srgb, var(--review-wash) 58%, #fff);
-  animation: sales-order-reveal 180ms ease-out;
-}
-
-.role-team-leader.leader-role-sales .sales-order-products,
-.role-team-leader.leader-role-sales .sales-order-review {
-  min-width: 0;
-  padding: 22px;
-}
-
-.role-team-leader.leader-role-sales .sales-order-products > header,
-.role-team-leader.leader-role-sales .sales-order-review > header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 14px;
-  margin-bottom: 14px;
-}
-
-.role-team-leader.leader-role-sales .sales-order-products h3,
-.role-team-leader.leader-role-sales .sales-order-review h3 {
-  margin: 3px 0 0;
-  color: var(--review-ink);
-  font-size: 1rem;
-}
-
-.role-team-leader.leader-role-sales .sales-order-review {
-  border-left: 1px solid var(--review-line);
-  background: var(--review-paper);
-}
-
-.role-team-leader.leader-role-sales .sales-order-product-list,
-.role-team-leader.leader-role-sales .sales-order-payment,
-.role-team-leader.leader-role-sales .sales-order-proof-links {
-  display: grid;
-  gap: 10px;
-}
-
-.role-team-leader.leader-role-sales .sales-order-product-line {
-  display: grid;
-  grid-template-columns: 62px minmax(0, 1fr) auto;
-  gap: 13px;
-  align-items: center;
-  min-height: 86px;
-  padding: 11px 13px;
-  border: 1px solid var(--review-line);
-  border-radius: 11px;
-  background: #fff;
-}
-
-.role-team-leader.leader-role-sales .sales-order-product-line img {
-  width: 62px;
-  height: 62px;
-  border-radius: 8px;
-  object-fit: cover;
-  background: var(--review-wash);
-}
-
-.role-team-leader.leader-role-sales .sales-order-product-line > div {
-  display: grid;
-  gap: 5px;
-  min-width: 0;
-}
-
-.role-team-leader.leader-role-sales .sales-order-product-line > div > strong {
-  overflow: hidden;
-  color: var(--review-ink);
-  font-size: 0.86rem;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.role-team-leader.leader-role-sales .sales-order-product-line small {
-  color: var(--review-muted);
-  font-size: 0.74rem;
-}
-
-.role-team-leader.leader-role-sales .sales-order-product-line > strong {
-  color: var(--review-ink);
-  font-size: 0.86rem;
-  font-variant-numeric: tabular-nums;
-}
-
-.role-team-leader.leader-role-sales .sales-order-payment-details {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1px;
-  margin: 0;
-  overflow: hidden;
-  border: 1px solid var(--review-line);
-  border-radius: 11px;
-  background: var(--review-line);
-}
-
-.role-team-leader.leader-role-sales .sales-order-payment-details > div {
-  display: grid;
-  gap: 4px;
-  min-width: 0;
-  padding: 11px 12px;
-  background: #fff;
-}
-
-.role-team-leader.leader-role-sales .sales-order-payment-details dt {
-  color: var(--review-muted);
-  font-size: 0.63rem;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.role-team-leader.leader-role-sales .sales-order-payment-details dd {
-  overflow: hidden;
-  margin: 0;
-  color: var(--review-ink);
-  font-size: 0.78rem;
-  font-weight: 800;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.role-team-leader.leader-role-sales .sales-order-proof-links {
-  margin-top: 10px;
-}
-
-.role-team-leader.leader-role-sales .sales-order-proof-links a {
-  display: grid;
-  grid-template-columns: 36px minmax(0, 1fr) 18px;
-  gap: 10px;
-  align-items: center;
-  min-height: 58px;
-  padding: 9px 12px;
-  border: 1px solid rgba(170, 134, 22, 0.28);
-  border-radius: 11px;
-  background: rgba(215, 182, 33, 0.08);
-  color: var(--review-ink);
-}
-
-.role-team-leader.leader-role-sales .sales-order-proof-links a > svg:first-child {
-  width: 36px;
-  height: 36px;
-  padding: 9px;
-  border-radius: 9px;
-  background: #fff;
-  color: #9b7612;
-}
-
-.role-team-leader.leader-role-sales .sales-order-proof-links a > svg:last-child {
-  width: 17px;
-  height: 17px;
-  color: var(--review-muted);
-}
-
-.role-team-leader.leader-role-sales .sales-order-proof-links a span {
-  display: grid;
-  gap: 2px;
-  min-width: 0;
-}
-
-.role-team-leader.leader-role-sales .sales-order-proof-links a strong {
-  font-size: 0.78rem;
-}
-
-.role-team-leader.leader-role-sales .sales-order-proof-links a small {
-  overflow: hidden;
-  color: var(--review-muted);
-  font-size: 0.68rem;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.role-team-leader.leader-role-sales .sales-order-review-note,
-.role-team-leader.leader-role-sales .sales-order-empty-products {
-  display: grid;
-  grid-template-columns: 36px minmax(0, 1fr);
-  gap: 10px;
-  align-items: center;
-  padding: 11px 12px;
-  border: 1px solid var(--review-line);
-  border-radius: 11px;
-  background: var(--review-wash);
-}
-
-.role-team-leader.leader-role-sales .sales-order-review-note.is-cancelled {
-  margin-bottom: 10px;
-  border-color: color-mix(in srgb, var(--error) 25%, var(--review-line));
-}
-
-.role-team-leader.leader-role-sales .sales-order-review-note > svg,
-.role-team-leader.leader-role-sales .sales-order-empty-products > svg {
-  width: 20px;
-  height: 20px;
-  margin: auto;
-  color: #9b7612;
-}
-
-.role-team-leader.leader-role-sales .sales-order-review-note > span {
-  display: grid;
-  gap: 3px;
-}
-
-.role-team-leader.leader-role-sales .sales-order-review-note strong {
-  color: var(--review-ink);
-  font-size: 0.79rem;
-}
-
-.role-team-leader.leader-role-sales .sales-order-review-note small,
-.role-team-leader.leader-role-sales .sales-order-empty-products span {
-  color: var(--review-muted);
-  font-size: 0.72rem;
-  line-height: 1.4;
-}
-
-.role-team-leader.leader-role-sales .sales-order-decision-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 9px;
-  margin-top: 16px;
-  padding-top: 16px;
-  border-top: 1px solid var(--review-line);
-}
-
-.role-team-leader.leader-role-sales .sales-order-decision-grid form:last-child {
-  grid-column: 1 / -1;
-}
-
-.role-team-leader.leader-role-sales .sales-order-decision {
-  justify-content: center;
-  width: 100%;
-  min-height: 43px;
-  border: 1px solid var(--review-line);
-  border-radius: 9px;
-  font-size: 0.78rem;
-}
-
-.role-team-leader.leader-role-sales .sales-order-decision.is-fulfill {
-  background: var(--review-ink);
-  color: #fff;
-}
-
-.role-team-leader.leader-role-sales .sales-order-decision svg {
-  width: 16px;
-  height: 16px;
-}
-
-.role-team-leader.leader-role-sales .sales-order-empty-state {
-  display: grid;
-  justify-items: center;
-  min-height: 280px;
-  place-content: center;
-  padding: 42px 20px;
-  text-align: center;
-}
-
-.role-team-leader.leader-role-sales .sales-order-empty-state > span {
-  display: grid;
-  width: 56px;
-  height: 56px;
-  margin-bottom: 14px;
-  place-items: center;
-  border-radius: 50%;
-  background: rgba(215, 182, 33, 0.13);
-  color: #9b7612;
-}
-
-.role-team-leader.leader-role-sales .sales-order-empty-state strong {
-  color: var(--review-ink);
-}
-
-.role-team-leader.leader-role-sales .sales-order-empty-state small {
-  max-width: 430px;
-  margin-top: 6px;
-  color: var(--review-muted);
-  line-height: 1.45;
-}
-
-.role-team-leader.leader-role-sales .sales-review-surface .sales-order-pagination {
-  margin: 20px 0 0;
-  padding: 16px 0 0;
-  border-top: 1px solid var(--review-line);
-  background: transparent;
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 @keyframes sales-order-reveal {
   from { opacity: 0; transform: translateY(-4px); }
   to { opacity: 1; transform: translateY(0); }
-}
-
-@media (max-width: 1040px) {
-  .role-team-leader.leader-role-sales .sales-order-toolbar {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .role-team-leader.leader-role-sales .sales-order-search {
-    grid-column: 1 / -1;
-  }
-
-  .role-team-leader.leader-role-sales .sales-order-card-body {
-    grid-template-columns: 1fr;
-  }
-
-  .role-team-leader.leader-role-sales .sales-order-review {
-    border-top: 1px solid var(--review-line);
-    border-left: 0;
-  }
-}
-
-@media (max-width: 720px) {
-  .role-team-leader.leader-role-sales .sales-order-ledger-heading {
-    padding: 20px 16px;
-  }
-
-  .role-team-leader.leader-role-sales .sales-order-toolbar {
-    grid-template-columns: 1fr;
-    padding: 14px 16px;
-  }
-
-  .role-team-leader.leader-role-sales .sales-order-search {
-    grid-column: auto;
-  }
-
-  .role-team-leader.leader-role-sales .sales-order-results {
-    padding: 16px;
-  }
-
-  .role-team-leader.leader-role-sales .sales-order-card-summary {
-    grid-template-columns: minmax(0, 1fr) auto 38px;
-    gap: 11px;
-    padding: 15px;
-  }
-
-  .role-team-leader.leader-role-sales .sales-order-preview {
-    grid-column: 1 / -1;
-    grid-row: 2;
-    justify-content: flex-start;
-  }
-
-  .role-team-leader.leader-role-sales .sales-order-total {
-    grid-column: 2;
-    grid-row: 1;
-  }
-
-  .role-team-leader.leader-role-sales .sales-order-chevron {
-    grid-column: 3;
-    grid-row: 1;
-  }
-
-  .role-team-leader.leader-role-sales .sales-order-products,
-  .role-team-leader.leader-role-sales .sales-order-review {
-    padding: 16px;
-  }
-}
-
-@media (max-width: 480px) {
-  .role-team-leader.leader-role-sales .sales-order-ledger-heading {
-    align-items: center;
-  }
-
-  .role-team-leader.leader-role-sales .sales-order-ledger-heading p {
-    font-size: 0.8rem;
-  }
-
-  .role-team-leader.leader-role-sales .sales-order-ledger-count {
-    min-width: 82px;
-    padding-inline: 9px;
-  }
-
-  .role-team-leader.leader-role-sales .sales-order-ledger-count span {
-    max-width: 70px;
-  }
-
-  .role-team-leader.leader-role-sales .sales-order-product-line {
-    grid-template-columns: 52px minmax(0, 1fr);
-    gap: 10px;
-  }
-
-  .role-team-leader.leader-role-sales .sales-order-product-line img {
-    width: 52px;
-    height: 52px;
-  }
-
-  .role-team-leader.leader-role-sales .sales-order-product-line > strong {
-    grid-column: 2;
-  }
-
-  .role-team-leader.leader-role-sales .sales-order-payment-details,
-  .role-team-leader.leader-role-sales .sales-order-decision-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .role-team-leader.leader-role-sales .sales-order-decision-grid form:last-child {
-    grid-column: auto;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .role-team-leader.leader-role-sales .sales-order-card,
-  .role-team-leader.leader-role-sales .sales-order-chevron,
-  .role-team-leader.leader-role-sales .sales-order-card-body {
-    animation: none;
-    transition: none;
-  }
 }

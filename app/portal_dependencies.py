@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from fastapi import HTTPException, Request
+from fastapi import Request
+from fastapi import HTTPException
 from fastapi.responses import RedirectResponse
 
-from app import portal_config
 from app.business_time import business_now
 from app.repositories import accounts
 from app.web import path_with_query, redirect_to
@@ -36,6 +36,8 @@ def require_team_leader_role(request: Request, required_role: str) -> RedirectRe
     return None
 
 def require_portal_session(request: Request, role_key: str = "inventory") -> RedirectResponse | None:
+    if role_key not in {"inventory", "team-leader", "owner"}:
+        raise HTTPException(status_code=404)
     expires_at = request.session.get("portal_expires_at")
     try:
         expired = int(str(expires_at)) <= int(business_now().timestamp())

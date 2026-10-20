@@ -1,7 +1,8 @@
 services:
   - type: web
-    name: meattrack-inventory
+    name: batangas-premium-inventory-do-not-delete
     runtime: python
+    healthCheckPath: /health
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn app.main:create_app --factory --host 0.0.0.0 --port $PORT
     envVars:
@@ -16,6 +17,6 @@ services:
       - key: CSRF_PROTECTION_ENABLED
         value: "true"
       - key: AUTH_RATE_LIMIT_ENABLED
-        value: "false"
+        value: "true"
       - key: BUSINESS_TIMEZONE
         value: Asia/Manila

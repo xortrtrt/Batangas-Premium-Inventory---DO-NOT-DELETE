@@ -12,7 +12,7 @@ from app.business_time import business_now, business_today
 from app.config import BUSINESS_TIMEZONE
 from app.database import clean_row, execute_write, fetch_all, fetch_one, get_transaction_cursor
 from app.security import hash_password, password_needs_rehash, validate_password_policy, verify_password
-from app.security_controls import enforce_otp_attempt, enforce_otp_resend, record_event, record_otp_resend
+from app.security_controls import record_event
 from app.web_sessions import revoke_account_sessions
 
 PRODUCT_SORTS = {
@@ -148,9 +148,6 @@ def _add_log_cursor(
         (actor_account_id, action, entity_type, entity_id),
     )
 
-def _enqueue_outbox_cursor(cur, event_type: str, payload: dict, dedupe_key: str) -> None:
-    pass
-
 def add_log(actor_name: str, action: str, entity_name: str, actor_account_id: int | None = None) -> None:
     with get_transaction_cursor() as cur:
         acc_id = actor_account_id
@@ -164,13 +161,13 @@ __all__ = [
     'hashlib', 'json', 'logging', 'secrets', 'date', 'datetime', 'timedelta', 'Decimal',
     'measurements', 'business_now', 'business_today', 'BUSINESS_TIMEZONE', 'clean_row',
     'execute_write', 'fetch_all', 'fetch_one', 'get_transaction_cursor', 'hash_password',
-    'password_needs_rehash', 'validate_password_policy', 'verify_password', 'enforce_otp_attempt',
-    'enforce_otp_resend', 'record_event', 'record_otp_resend', 'revoke_account_sessions',
+    'password_needs_rehash', 'validate_password_policy', 'verify_password',
+    'record_event', 'revoke_account_sessions',
     'PRODUCT_SORTS', 'INVENTORY_ITEM_SORTS', 'BATCH_SORTS', 'ACCOUNT_SORTS',
     'LOG_SORTS', 'MOVEMENT_SORTS', 'UNIT_ALIASES', 'UNIT_FACTORS', 'raw_material_categories',
     'product_categories', 'stock_units', 'content_units', 'recipe_units', 'INVENTORY_LOG_ACTIONS',
     'safe_sort_sql', 'database_health', 'normalize_inventory_text', 'normalize_inventory_name',
     'parse_inventory_decimal', 'display_decimal', 'parse_money', 'require_inventory_choice',
     'canonical_inventory_unit', 'convert_inventory_quantity', 'pagination_meta',
-    '_add_log_cursor', '_enqueue_outbox_cursor', 'add_log'
+    '_add_log_cursor', 'add_log'
 ]

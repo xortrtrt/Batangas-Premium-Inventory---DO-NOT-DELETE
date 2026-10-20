@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-import json
 from typing import Any
 
-from ._shared import clean_row, fetch_all, fetch_one, get_transaction_cursor
+from ._shared import fetch_all, fetch_one
 
 SETTING_DEFAULTS: dict[str, Any] = {
     "inventory.near_expiry_days": 7,

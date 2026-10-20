@@ -16,6 +16,7 @@ EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 templates = Jinja2Templates(directory=BASE_DIR / "templates")
 
 PRODUCT_IMAGE_FILENAMES = {
+    "bacon": "bacon_smoked.jpg",
     "bacon smoked": "bacon_smoked.jpg",
     "beef longganisa": "beef_longganisa.jpg",
     "beef tapa ala eh": "beef_tapa_ala_eh.jpg",

@@ -49,20 +49,21 @@
     {% for log in activity_logs %}
       {% set is_in = log.quantity_delta > 0 %}
       {% set is_out = log.quantity_delta < 0 %}
-      {% set movement_label = 'Opening balance' if log.action == 'opening_balance' else 'Raw stock received' if log.action == 'raw_receipt' else 'Finished stock received' if log.action == 'direct_finished_receipt' else 'Used in production' if log.action == 'production_consumption' else 'Production output' if log.action == 'production_output' else 'Released for sale' if log.action == 'sale_fulfillment' else log.action.replace('_', ' ') %}
+      {% set movement_label = 'Opening balance' if log.action == 'opening_balance' else 'Raw stock received' if log.action == 'raw_receipt' else 'Finished stock received' if log.action == 'direct_finished_receipt' else 'Used in production' if log.action == 'production_consumption' else 'Production output' if log.action == 'production_output' else 'Dispatch' if log.action in ('stock_dispatch', 'sale_fulfillment') else log.action.replace('_', ' ') %}
       {% set movement_icon = 'arrow-down-to-line' if is_in else 'arrow-up-from-line' if is_out else 'minus' %}
     <article class="movement-row movement-row--{{ 'in' if is_in else 'out' if is_out else 'neutral' }}" role="listitem">
       <span class="movement-row__icon" aria-hidden="true"><i data-lucide="{{ movement_icon }}"></i></span>
       <div class="movement-row__item">
         <strong>{{ log.entity }}</strong>
         <span>{{ movement_label }}</span>
+        {% if log.dispatch_id %}<small>Dispatch {{ log.dispatch_id }} · {{ log.actor_name }}</small><small>{{ log.note }}</small>{% endif %}
       </div>
       <div class="movement-row__change">
         <span class="movement-direction">{{ 'Stock in' if is_in else 'Stock out' if is_out else 'No change' }}</span>
         <strong>{{ '+' if is_in else '' }}{{ log.quantity_delta|number }} <small>{{ log.unit }}</small></strong>
       </div>
       <div class="movement-row__balance">
-        <span>Balance after</span>
+        <span>Balance {{ log.balance_before|number }} →</span>
         <strong>{{ log.balance_after|number }} <small>{{ log.unit }}</small></strong>
       </div>
       <time class="movement-row__date" datetime="{{ log.created_at }}">

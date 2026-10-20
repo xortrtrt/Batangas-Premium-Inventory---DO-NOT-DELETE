@@ -23,7 +23,7 @@ def get_pool() -> ThreadedConnectionPool:
     if pool is None:
         with _pool_lock:
             if pool is None:
-                pool = ThreadedConnectionPool(DATABASE_POOL_MIN, DATABASE_POOL_MAX, DSN)
+                pool = ThreadedConnectionPool(DATABASE_POOL_MIN, DATABASE_POOL_MAX, DSN, connect_timeout=10)
     return pool
 
 @contextmanager

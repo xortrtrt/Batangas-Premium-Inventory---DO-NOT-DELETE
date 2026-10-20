@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from app.portal_config import team_leader_role_labels
 from ._shared import *
 
-def role_key_for_account_type(account_type: str, team_leader_role: str | None = None) -> str:
-    return "inventory"
+def role_key_for_account_type(account_type: str, team_leader_role: str | None = None) -> str | None:
+    if account_type == "owner" or (account_type == "team_leader" and team_leader_role == "inventory"):
+        return "inventory"
+    return None
 
 def authenticate_account(email: str, password: str) -> dict | None:
     account = fetch_one(
@@ -18,7 +19,8 @@ def authenticate_account(email: str, password: str) -> dict | None:
         """,
         (email.strip(),),
     )
-    if account is None or not account["is_active"] or account["activation_status"] != "active":
+    if (account is None or not account["is_active"] or account["activation_status"] != "active"
+            or role_key_for_account_type(account["account_type"], account["team_leader_role"]) is None):
         return None
 
     if not verify_password(password, account["password_hash"]):
@@ -44,7 +46,8 @@ def account_portal_profile(account_id: int) -> dict | None:
         WHERE account_id = %s
         LIMIT 1;
     """, (account_id,))
-    if not account or not account["is_active"] or account["activation_status"] != "active":
+    if (not account or not account["is_active"] or account["activation_status"] != "active"
+            or role_key_for_account_type(account["account_type"], account["team_leader_role"]) is None):
         return None
     clean = clean_row(account)
     clean["role_key"] = "inventory"

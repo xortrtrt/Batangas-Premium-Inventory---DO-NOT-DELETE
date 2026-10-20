@@ -1,23 +1,21 @@
 from __future__ import annotations
 
 from datetime import date
-from urllib.parse import urlsplit, urlunsplit
 
 from fastapi import APIRouter, File, Form, HTTPException, Request, UploadFile
-from fastapi.responses import RedirectResponse, Response
+from fastapi.responses import RedirectResponse
 
 from app import repositories as data
 from app import portal_config
 from app import portal_dependencies
 from app import uploads as uploads_module
 from app import web
-from app.capabilities import portal_section_capability, require_capability
 
 router = APIRouter()
 
 PORTAL_TEMPLATES = {
     "inventory": "portals/inventory.html",
-    "team-leader": "portals/team_leader.html",
+    "team-leader": "portals/inventory.html",
     "owner": "portals/inventory.html",
 }
 
@@ -102,7 +100,6 @@ def product_page(request: Request, page_size: int = 12, active_only: bool = Fals
 
 def notifications_context(request: Request, page_size: int = 15) -> dict:
     account_id = session_account_id(request)
-    role_key = str(request.path_params.get("role_key") or request.session.get("role_key") or "inventory")
     requested_status = request.query_params.get("status", "").strip().lower()
     status = requested_status if requested_status in {"unread", "read"} else ""
     requested_category = request.query_params.get("type", "").strip().lower()

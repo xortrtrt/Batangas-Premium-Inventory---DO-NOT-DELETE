@@ -60,8 +60,8 @@
     <header class="inventory-product-group-heading">
       <span class="inventory-product-group-icon"><i data-lucide="package-open"></i></span>
       <div>
-        <h4 id="standard-products-title">Individual products</h4>
-        <p>Finished goods sold as regular product packs.</p>
+        <h4 id="standard-products-title">Finished stock</h4>
+        <p>Product packs and bundles tracked in inventory.</p>
       </div>
       <span class="inventory-product-group-count">{{ finished_products|length }}</span>
     </header>
@@ -79,7 +79,7 @@
       <span class="inventory-product-group-icon"><i data-lucide="gift"></i></span>
       <div>
         <h4 id="package-products-title">Packages</h4>
-        <p>Trial, reseller, and distributor bundles kept separate from regular products.</p>
+        <p>Packaged bundles tracked as finished stock.</p>
       </div>
       <span class="inventory-product-group-count">{{ finished_product_packages|length }}</span>
     </header>

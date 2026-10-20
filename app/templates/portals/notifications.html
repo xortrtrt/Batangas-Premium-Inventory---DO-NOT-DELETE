@@ -5,7 +5,7 @@
     <div>
       <span class="eyebrow">Activity center</span>
       <h2 id="notification-center-title">Notifications</h2>
-      <p>Review account, order, inquiry, inventory, forecast, and report activity in one place.</p>
+      <p>Review inventory alerts and account activity in one place.</p>
     </div>
     <div class="notification-center-summary" aria-label="Notification summary" data-async-filter-sync="notification-summary">
       <span><strong>{{ unread_notifications|number }}</strong> unread</span>
@@ -47,7 +47,7 @@
   <div data-async-filter-results data-async-filter-target="[data-async-filter-results]" aria-live="polite">
   <section class="notification-center-feed" aria-label="Notification history">
     {% for item in notification_items %}
-    {% set item_icon = 'package-check' if item.category|lower == 'order' else 'user-round-plus' if item.category|lower == 'inquiry' else 'boxes' if item.category|lower == 'inventory' else 'circle-user-round' if item.category|lower == 'account' else 'chart-no-axes-combined' if item.category|lower == 'forecast' else 'file-chart-column' if item.category|lower == 'report' else 'bell' %}
+    {% set item_icon = 'boxes' if item.category|lower == 'inventory' else 'circle-user-round' if item.category|lower == 'account' else 'bell' %}
     <form class="notification-center-entry" action="/portal/{{ role_key }}/notifications/{{ item.notification_id }}/open" method="post">
       <button class="notification-center-item {{ item.severity }} {{ 'is-read' if item.read_at else 'is-unread' }}" type="submit">
         <span class="notification-center-icon"><i data-lucide="{{ item_icon }}"></i></span>

@@ -12,6 +12,12 @@
   </header>
 
   <div class="inventory-task-grid">
+    <button class="inventory-task-card inventory-task-card--quantity" type="button" data-inventory-modal-open="dispatch-stock" aria-haspopup="dialog" aria-controls="inventory-modal-dispatch-stock">
+      <span class="inventory-task-icon"><i data-lucide="truck"></i></span>
+      <span class="inventory-task-copy"><span class="inventory-task-kicker">Stock out</span><strong>Dispatch Stock</strong><small>Record finished packs leaving inventory, earliest expiry first.</small></span>
+      <span class="inventory-task-meta">Finished products</span>
+      <span class="inventory-task-arrow" aria-hidden="true"><i data-lucide="arrow-up-right"></i></span>
+    </button>
     <button class="inventory-task-card inventory-task-card--material" type="button" data-inventory-modal-open="add-material" aria-haspopup="dialog" aria-controls="inventory-modal-add-material">
       <span class="inventory-task-icon"><i data-lucide="package-plus"></i></span>
       <span class="inventory-task-copy">
@@ -63,11 +69,33 @@
         <strong>Product recipes</strong>
         <small>Review ingredients and update declared pack contents.</small>
       </span>
-      <span class="inventory-task-meta">{{ recipe_products_page.pagination.total }} recipe{{ '' if recipe_products_page.pagination.total == 1 else 's' }}</span>
+      <span class="inventory-task-meta">{{ recipe_products_page.pagination.total }} product{{ '' if recipe_products_page.pagination.total == 1 else 's' }}</span>
       <span class="inventory-task-arrow" aria-hidden="true"><i data-lucide="arrow-up-right"></i></span>
     </button>
   </div>
 </section>
+
+<div class="inventory-modal" id="inventory-modal-dispatch-stock" data-inventory-modal="dispatch-stock" hidden>
+  <button class="inventory-modal-backdrop" type="button" aria-label="Close dispatch stock" data-inventory-modal-close></button>
+  <section class="inventory-modal-card inventory-modal-card--compact" role="dialog" aria-modal="true" aria-labelledby="inventory-modal-dispatch-stock-title" tabindex="-1">
+    <header class="inventory-modal-head">
+      <span class="inventory-modal-icon"><i data-lucide="truck"></i></span>
+      <div><span class="eyebrow">Stock out</span><h2 id="inventory-modal-dispatch-stock-title">Dispatch Stock</h2><p>Approved, unexpired batches are used in expiry order.</p></div>
+      <button class="icon-button" type="button" aria-label="Close dispatch stock" data-inventory-modal-close><i data-lucide="x"></i></button>
+    </header>
+    <div class="inventory-modal-body">
+      <form class="form-panel bare inventory-modal-form" action="/portal/inventory/dispatch" method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}" />
+        <input type="hidden" name="submission_reference" value="{{ dispatch_reference }}" />
+        <label>Finished product <select name="product_id" required><option value="">Choose a product</option>{% for product in products %}<option value="{{ product.product_id }}">{{ product.name }} — {{ product.available|number }} packs available</option>{% endfor %}</select></label>
+        <label>Quantity (packs) <input required type="number" min="1" step="1" name="quantity" inputmode="numeric" /></label>
+        <label>Dispatch note <textarea required name="note" maxlength="500" rows="3" placeholder="Where the packs are going or why they are leaving"></textarea></label>
+        <p class="hint">Confirm the quantity before recording. Each deduction is saved in the stock movement history.</p>
+        <footer class="inventory-modal-actions"><button class="button subtle" type="button" data-inventory-modal-close>Cancel</button><button class="button primary" type="submit"><i data-lucide="truck"></i> Record dispatch</button></footer>
+      </form>
+    </div>
+  </section>
+</div>
 
 <div class="inventory-modal" id="inventory-modal-add-material" data-inventory-modal="add-material" hidden>
   <button class="inventory-modal-backdrop" type="button" aria-label="Close add raw material" data-inventory-modal-close></button>

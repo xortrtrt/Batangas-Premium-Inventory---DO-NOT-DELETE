@@ -1,6 +1,7 @@
 """Compatibility facade for inventory persistence operations."""
 
 from .movements import _insert_inventory_movement, _inventory_actor_name
+from .dispatch import dispatch_stock
 from .products import (
     add_product_batch,
     create_product_with_recipe,
@@ -18,7 +19,6 @@ from .queries import (
     list_inventory_batches,
     list_inventory_items,
     list_inventory_movements,
-    list_best_selling_products,
     list_product_recipes,
     list_products,
     list_raw_materials,
@@ -26,13 +26,13 @@ from .queries import (
 from .raw_materials import add_raw_inventory_item, add_raw_inventory_quantity
 
 __all__ = [
+    "dispatch_stock",
     "inventory_item_filter",
     "list_inventory_items",
     "count_inventory_items",
     "list_inventory_batches",
     "count_inventory_batches",
     "list_products",
-    "list_best_selling_products",
     "count_products",
     "list_raw_materials",
     "list_product_recipes",

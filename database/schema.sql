@@ -210,28 +210,6 @@ CREATE TABLE security_events (
     created_at timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE TABLE account_password_otps (
-    account_password_otp_id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    account_id bigint NOT NULL REFERENCES accounts(account_id) ON UPDATE CASCADE ON DELETE CASCADE,
-    otp_hash text NOT NULL,
-    pending_password_hash text NOT NULL,
-    expires_at timestamptz NOT NULL,
-    consumed_at timestamptz,
-    created_at timestamptz NOT NULL DEFAULT now(),
-    CHECK (btrim(otp_hash) <> ''),
-    CHECK (btrim(pending_password_hash) <> '')
-);
-
-CREATE TABLE account_activation_tokens (
-    activation_token_id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    account_id bigint NOT NULL REFERENCES accounts(account_id) ON UPDATE CASCADE ON DELETE CASCADE,
-    token_hash char(64) NOT NULL UNIQUE CHECK (length(token_hash) = 64),
-    purpose text NOT NULL DEFAULT 'activation' CHECK (purpose IN ('activation', 'password_reset')),
-    expires_at timestamptz NOT NULL,
-    consumed_at timestamptz,
-    created_at timestamptz NOT NULL DEFAULT now()
-);
-
 CREATE TABLE user_consents (
     user_consent_id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     account_id bigint NOT NULL REFERENCES accounts(account_id) ON UPDATE CASCADE ON DELETE CASCADE,

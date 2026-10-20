@@ -162,7 +162,7 @@ def produce_product(
     expiry_date: date,
     actor_account_id: int | None = None,
 ) -> dict:
-    from ..superuser import business_setting
+    from ..settings import business_setting
 
     near_expiry_days = int(business_setting("inventory.near_expiry_days"))
     critical_expiry_days = int(business_setting("inventory.critical_expiry_days"))
@@ -302,7 +302,7 @@ def add_product_batch(
     source_type: str = "direct_received",
     actor_account_id: int | None = None,
 ) -> dict:
-    from ..superuser import business_setting
+    from ..settings import business_setting
 
     near_expiry_days = int(business_setting("inventory.near_expiry_days"))
     critical_expiry_days = int(business_setting("inventory.critical_expiry_days"))

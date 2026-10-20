@@ -12,11 +12,13 @@ MEDIA_FILENAME_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]*$")
 router = APIRouter()
 
 @router.get("/health", include_in_schema=False)
-async def health():
+def health():
     """Deployment probe that verifies the application and database (used by Render / UptimeRobot)."""
     try:
         result = data.database_health()
     except Exception:
+        return JSONResponse({"status": "unhealthy", "database": "unavailable"}, status_code=503)
+    if result != "connected":
         return JSONResponse({"status": "unhealthy", "database": "unavailable"}, status_code=503)
     return {"status": "ok", "database": result}
 

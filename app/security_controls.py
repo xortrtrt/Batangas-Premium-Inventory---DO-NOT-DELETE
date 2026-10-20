@@ -3,11 +3,10 @@ from __future__ import annotations
 import hashlib
 import hmac
 import secrets
-from urllib.parse import urlparse
 
 from fastapi import HTTPException, Request, status
 
-from app.config import APP_ENV, AUTH_RATE_LIMIT_ENABLED, CSRF_PROTECTION_ENABLED, RATE_LIMIT_HASH_KEY
+from app.config import AUTH_RATE_LIMIT_ENABLED, CSRF_PROTECTION_ENABLED, RATE_LIMIT_HASH_KEY
 from app.database import get_transaction_cursor
 
 def client_ip(request: Request) -> str:
@@ -84,12 +83,3 @@ def enforce_password_login(request: Request, email: str) -> None:
 
 def record_password_login(request: Request, email: str, succeeded: bool) -> None:
     record_event("password_login", f"email:{email.lower()}", succeeded=succeeded)
-
-def enforce_otp_attempt(account_id: int) -> None:
-    pass
-
-def enforce_otp_resend(account_id: int) -> None:
-    pass
-
-def record_otp_resend(account_id: int) -> None:
-    pass

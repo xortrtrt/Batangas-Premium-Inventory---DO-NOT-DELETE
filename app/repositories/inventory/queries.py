@@ -16,7 +16,7 @@ MOVEMENT_CATEGORY_TYPES = {
     "opening": ("opening_balance",),
     "receipts": ("raw_receipt", "direct_finished_receipt"),
     "production": ("production_consumption", "production_output"),
-    "sales": ("sale_fulfillment",),
+    "dispatch": ("stock_dispatch", "sale_fulfillment"),
 }
 
 
@@ -210,28 +210,6 @@ def list_products(
     ), tuple(params) or None))
 
 
-def list_best_selling_products(limit: int = 3) -> list[dict]:
-    clean_limit = max(1, min(int(limit), 12))
-    return clean_row(fetch_all("""
-        SELECT p.item_id AS product_id,
-               p.name,
-               p.description,
-               p.unit,
-               p.base_price,
-               p.category,
-               p.pack_size,
-               p.pack_size_unit,
-               COALESCE(SUM(pb.quantity_available), 0) AS total_quantity
-        FROM inventory_items p
-        LEFT JOIN inventory_batches pb ON pb.item_id = p.item_id
-        WHERE p.item_type = 'finished_product'
-          AND p.is_active = true
-        GROUP BY p.item_id, p.name, p.description, p.unit, p.base_price, p.category, p.pack_size, p.pack_size_unit
-        ORDER BY total_quantity DESC, p.name ASC
-        LIMIT %s;
-    """, (clean_limit,)))
-
-
 def count_products(q: str = "", category: str = "", active_only: bool = False) -> int:
     query = """
         SELECT COUNT(*) AS total
@@ -342,7 +320,11 @@ def list_inventory_movements(
                ii.name AS entity,
                im.quantity_delta,
                im.unit,
+               im.balance_before,
                im.balance_after,
+               im.actor_name,
+               im.note,
+               im.dispatch_id,
                im.created_at
         FROM inventory_movements im
         JOIN inventory_items ii ON ii.item_id = im.item_id

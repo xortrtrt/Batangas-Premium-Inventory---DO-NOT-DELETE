@@ -8,7 +8,6 @@ from app import repositories as data
 from app import web
 from app.business_time import business_now
 from app.config import CONSENT_VERSION
-from app.portal_dependencies import safe_portal_path
 from app.security_controls import (
     enforce_password_login,
     record_password_login,
@@ -43,8 +42,9 @@ async def root():
     return redirect_to("/portal/inventory/dashboard")
 
 @router.get("/login")
-async def login(request: Request, message: str = "", error: str = ""):
-    if request.session.get("account_id"):
+def login(request: Request, message: str = "", error: str = ""):
+    from app.portal_dependencies import require_portal_session
+    if request.session.get("account_id") and require_portal_session(request) is None:
         return redirect_to("/portal/inventory/dashboard")
     return templates.TemplateResponse(
         request,
@@ -55,13 +55,11 @@ async def login(request: Request, message: str = "", error: str = ""):
             "message": message,
             "error": error,
             "consent_version": CONSENT_VERSION,
-            "login_otp_pending": False,
-            "pending_login_email": "",
         },
     )
 
 @router.post("/login")
-async def submit_login(
+def submit_login(
     request: Request,
     email: str = Form(...),
     password: str = Form(...),
@@ -70,6 +68,8 @@ async def submit_login(
     try:
         email = require_email(email)
         enforce_password_login(request, email)
+        if consent != "yes":
+            raise ValueError("Please acknowledge the inventory activity notice to continue.")
         if len(password.strip()) < 4:
             raise ValueError("Password must be at least 4 characters.")
     except ValueError as exc:

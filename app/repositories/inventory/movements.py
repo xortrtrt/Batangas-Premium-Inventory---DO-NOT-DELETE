@@ -24,18 +24,17 @@ def _insert_inventory_movement(
     actor_name: str,
     affected_batch_id: int | None = None,
     production_batch_id: int | None = None,
-    order_id: int | None = None,
     note: str | None = None,
 ) -> None:
     cur.execute("""
         INSERT INTO inventory_movements (
-            item_id, affected_batch_id, production_batch_id, order_id,
+            item_id, affected_batch_id, production_batch_id,
             movement_type, quantity_delta, unit, balance_before, balance_after,
             actor_account_id, actor_name, note
         )
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
     """, (
-        item_id, affected_batch_id, production_batch_id, order_id,
+        item_id, affected_batch_id, production_batch_id,
         movement_type, quantity_delta, unit, balance_before, balance_after,
         actor_account_id, actor_name, note,
     ))
