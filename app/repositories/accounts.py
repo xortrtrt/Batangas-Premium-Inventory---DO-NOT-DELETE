@@ -14,10 +14,11 @@ def authenticate_account(email: str, password: str) -> dict | None:
                profile_image_path, profile_image_position_x, profile_image_position_y, profile_image_scale,
                is_active, activation_status
         FROM accounts
-        WHERE lower(email) = lower(%s)
+        WHERE lower(username) = lower(%s)
+           OR (username IS NULL AND lower(email) = lower(%s))
         LIMIT 1;
         """,
-        (email.strip(),),
+        (email.strip(), email.strip()),
     )
     if (account is None or not account["is_active"] or account["activation_status"] != "active"
             or role_key_for_account_type(account["account_type"], account["team_leader_role"]) is None):
@@ -39,7 +40,7 @@ def authenticate_account(email: str, password: str) -> dict | None:
 
 def account_portal_profile(account_id: int) -> dict | None:
     account = fetch_one("""
-        SELECT account_id, account_type, team_leader_role, name, email,
+        SELECT account_id, account_type, team_leader_role, name, email, username,
                profile_image_path, profile_image_position_x, profile_image_position_y, profile_image_scale,
                is_active, activation_status
         FROM accounts

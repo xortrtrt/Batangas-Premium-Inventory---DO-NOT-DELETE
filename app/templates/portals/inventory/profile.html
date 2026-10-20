@@ -6,6 +6,9 @@
     </div>
     {% include "portals/_profile_picture.html" %}
     <dl class="profile-details">
+      {% if account_profile and account_profile.username %}
+      <div><dt>Username</dt><dd>{{ account_profile.username }}</dd></div>
+      {% endif %}
       <div>
         <dt>Name</dt>
         <dd>{{ account_profile.name if account_profile else role.name }}</dd>

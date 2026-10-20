@@ -135,7 +135,7 @@ class DatabaseSessionMiddleware:
                     seconds = PORTAL_SESSION_SECONDS if session.get("account_id") else PUBLIC_SESSION_SECONDS
                     await run_in_threadpool(_persist_session, token, session, seconds)
                     cookie = (
-                        f"{SESSION_COOKIE_NAME}={token}; Path=/; Max-Age={seconds}; "
+                        f"{SESSION_COOKIE_NAME}={token}; Path=/; "
                         "HttpOnly; SameSite=Lax"
                     )
                     if APP_ENV == "production":

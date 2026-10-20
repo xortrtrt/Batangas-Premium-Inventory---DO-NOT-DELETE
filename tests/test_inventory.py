@@ -398,3 +398,39 @@ def test_add_recipe_to_existing_product(stock):
     update_product_recipe(product, [material], ["500"], ["g"], actor)
     update_product_recipe(product, [material], ["500"], ["g"], actor)
     assert scalar(dsn, "SELECT count(*) FROM product_recipes WHERE product_item_id=%s", (product,)) == 1
+
+
+def test_username_login_requires_credentials_and_entry_link_signs_out(inventory_db):
+    from app.config import SESSION_COOKIE_NAME
+    dsn, actor = inventory_db
+    password = "Username-Test-123!"
+    with psycopg2.connect(dsn) as conn:
+        with conn.cursor() as cur:
+            cur.execute("UPDATE accounts SET username='BPadmin', password_hash=%s WHERE account_id=%s",
+                        (hash_password(password), actor))
+    assert accounts.authenticate_account("bpADMIN", password)["account_id"] == actor
+    assert accounts.authenticate_account("inventory@test.invalid", password) is None
+    assert accounts.authenticate_account("BPadmin", "incorrect") is None
+    client = TestClient(create_app())
+    assert client.get("/portal/inventory/inventory").url.path == "/login"
+
+    def sign_in():
+        page = client.get("/login")
+        assert 'name="username"' in page.text and 'type="email"' not in page.text
+        token = re.search(r'name="csrf-token" content="([^"]+)"', page.text).group(1)
+        response = client.post("/login", data={"username": "BPadmin", "password": password,
+                                               "csrf_token": token, "consent": "yes"}, follow_redirects=False)
+        assert response.status_code == 303
+        assert "Max-Age" not in response.headers["set-cookie"]
+        assert "HttpOnly" in response.headers["set-cookie"]
+        return client.cookies.get(SESSION_COOKIE_NAME)
+
+    for entry in ("/", "/login"):
+        old_token = sign_in()
+        assert client.get("/portal/inventory/inventory").status_code == 200
+        page = client.get(entry)
+        assert page.url.path == "/login" and "Portal Sign In" in page.text
+        replay = TestClient(create_app())
+        replay.cookies.set(SESSION_COOKIE_NAME, old_token)
+        assert replay.get("/portal/inventory/dashboard").url.path == "/login"
+    assert scalar(dsn, "SELECT count(*) FROM inventory_movements") == 0

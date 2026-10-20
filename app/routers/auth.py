@@ -12,9 +12,8 @@ from app.security_controls import (
     enforce_password_login,
     record_password_login,
 )
-from app.web_sessions import rotate_session
+from app.web_sessions import PORTAL_SESSION_SECONDS, rotate_session
 
-PORTAL_SESSION_SECONDS = 7 * 24 * 60 * 60  # 7 days session for convenience
 router = APIRouter()
 templates = web.templates
 redirect_to = web.redirect_to
@@ -38,14 +37,13 @@ def establish_portal_session(request: Request, account: dict) -> RedirectRespons
     return redirect_to("/portal/inventory/dashboard")
 
 @router.get("/")
-async def root():
-    return redirect_to("/portal/inventory/dashboard")
+async def root(request: Request):
+    request.session.clear()
+    return redirect_to("/login")
 
 @router.get("/login")
 def login(request: Request, message: str = "", error: str = ""):
-    from app.portal_dependencies import require_portal_session
-    if request.session.get("account_id") and require_portal_session(request) is None:
-        return redirect_to("/portal/inventory/dashboard")
+    request.session.clear()
     return templates.TemplateResponse(
         request,
         "login.html",
@@ -61,12 +59,15 @@ def login(request: Request, message: str = "", error: str = ""):
 @router.post("/login")
 def submit_login(
     request: Request,
-    email: str = Form(...),
+    email: str = Form(""),
     password: str = Form(...),
     consent: str = Form(""),
+    username: str = Form(""),
 ):
     try:
-        email = require_email(email)
+        email = (username or email).strip()
+        if not email or len(email) > 254:
+            raise ValueError("Enter your username.")
         enforce_password_login(request, email)
         if consent != "yes":
             raise ValueError("Please acknowledge the inventory activity notice to continue.")
@@ -78,7 +79,7 @@ def submit_login(
     account = data.authenticate_account(email, password)
     if account is None:
         record_password_login(request, email, False)
-        return redirect_to(path_with_query("/login", error="Invalid email or password."))
+        return redirect_to(path_with_query("/login", error="Invalid username or password."))
     record_password_login(request, email, True)
 
     data.record_user_consent(account["account_id"], CONSENT_VERSION, "password_login")
