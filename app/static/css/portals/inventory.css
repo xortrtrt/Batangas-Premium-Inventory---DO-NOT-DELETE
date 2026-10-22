@@ -1086,6 +1086,29 @@
   white-space: nowrap;
 }
 
+.role-team-leader .movement-row__actor {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ledger-ink);
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.role-team-leader .movement-row__actor svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.role-team-leader .movement-row__reference,
+.role-team-leader .movement-row__note {
+  overflow-wrap: anywhere;
+  color: var(--ledger-muted);
+  font-size: 0.72rem;
+  line-height: 1.4;
+}
+
 .role-team-leader .movement-row__item span,
 .role-team-leader .movement-row__balance span,
 .role-team-leader .movement-direction {

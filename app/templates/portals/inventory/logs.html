@@ -4,7 +4,7 @@
     <div>
       <span class="stock-ledger__eyebrow">Inventory control</span>
       <h2 id="stock-ledger-title">Stock movements</h2>
-      <p>Every increase and deduction, in one clear timeline.</p>
+      <p>Every increase and deduction, with the account that recorded it.</p>
     </div>
     <div class="stock-ledger__count" aria-label="{{ activity_logs_page.pagination.total }} total movements" data-async-filter-sync="movement-count">
       <strong>{{ activity_logs_page.pagination.total|number }}</strong>
@@ -30,7 +30,7 @@
       <input
         name="q"
         value="{{ activity_logs_page.filters.q }}"
-        placeholder="Search item or movement"
+        placeholder="Search item, movement, or account"
         autocomplete="off"
       />
     </label>
@@ -39,6 +39,7 @@
       <select name="sort" aria-label="Sort stock movements">
         <option value="">Newest first</option>
         <option value="oldest" {{ 'selected' if activity_logs_page.filters.sort == 'oldest' else '' }}>Oldest first</option>
+        <option value="actor_asc" {{ 'selected' if activity_logs_page.filters.sort == 'actor_asc' else '' }}>Account A–Z</option>
       </select>
     </label>
     <a class="stock-clear-button" href="/portal/inventory/logs" data-async-filter-sync="movement-clear" {% if not (activity_logs_page.filters.q or activity_logs_page.filters.type or activity_logs_page.filters.sort) %}hidden{% endif %}>Clear</a>
@@ -56,7 +57,9 @@
       <div class="movement-row__item">
         <strong>{{ log.entity }}</strong>
         <span>{{ movement_label }}</span>
-        {% if log.dispatch_id %}<small>Dispatch {{ log.dispatch_id }} · {{ log.actor_name }}</small><small>{{ log.note }}</small>{% endif %}
+        <small class="movement-row__actor"><i data-lucide="user-check" aria-hidden="true"></i> Recorded by {{ log.actor_name }}</small>
+        {% if log.dispatch_id %}<small class="movement-row__reference">Dispatch {{ log.dispatch_id }}</small>{% endif %}
+        {% if log.note %}<small class="movement-row__note">{{ log.note }}</small>{% endif %}
       </div>
       <div class="movement-row__change">
         <span class="movement-direction">{{ 'Stock in' if is_in else 'Stock out' if is_out else 'No change' }}</span>

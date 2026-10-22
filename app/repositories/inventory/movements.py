@@ -6,9 +6,11 @@ from decimal import Decimal
 def _inventory_actor_name(cur, actor_account_id: int | None) -> str:
     if actor_account_id is None:
         return "MEATTRACK"
-    cur.execute("SELECT name FROM accounts WHERE account_id = %s LIMIT 1;", (actor_account_id,))
+    cur.execute("SELECT COALESCE(NULLIF(username, ''), name) AS name FROM accounts WHERE account_id = %s LIMIT 1;", (actor_account_id,))
     actor = cur.fetchone()
-    return actor["name"] if actor else "MEATTRACK"
+    if actor is None:
+        raise ValueError("Stock movement account was not found.")
+    return actor["name"]
 
 
 def _insert_inventory_movement(

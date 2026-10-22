@@ -11,6 +11,7 @@ Render service and Neon PostgreSQL database.
 - Finished-product receipts, batches, and expiry tracking
 - Manual stock dispatch using earliest-expiring eligible batches
 - Immutable inventory movement history, dashboard, and inventory notifications
+- Account attribution on every stock movement, with account-name search and sorting
 - Existing inventory login and profile/password changes
 
 Sales, reseller management, orders, payments, forecasting, chat, and email

@@ -301,8 +301,9 @@ def list_inventory_movements(
         where.append("""(
             im.movement_type ILIKE %s
             OR ii.name ILIKE %s
+            OR im.actor_name ILIKE %s
         )""")
-        params.extend([search, search])
+        params.extend([search, search, search])
     if category in MOVEMENT_CATEGORY_TYPES:
         where.append("im.movement_type = ANY(%s)")
         params.append(list(MOVEMENT_CATEGORY_TYPES[category]))
@@ -320,6 +321,7 @@ def list_inventory_movements(
                im.unit,
                im.balance_before,
                im.balance_after,
+               im.actor_account_id,
                im.actor_name,
                im.note,
                im.dispatch_id,
@@ -342,8 +344,9 @@ def count_inventory_movements(q: str = "", category: str = "") -> int:
         where.append("""(
             im.movement_type ILIKE %s
             OR ii.name ILIKE %s
+            OR im.actor_name ILIKE %s
         )""")
-        params.extend([search, search])
+        params.extend([search, search, search])
     if category in MOVEMENT_CATEGORY_TYPES:
         where.append("im.movement_type = ANY(%s)")
         params.append(list(MOVEMENT_CATEGORY_TYPES[category]))

@@ -267,6 +267,19 @@
                         .find((candidate) => candidate.dataset.asyncFilterSync === syncKey);
                     if (nextElement) currentElement.replaceWith(nextElement);
                 });
+                // Keep the account search and sort aligned with Clear/category/back navigation.
+                // Avoid replacing the form so typing retains keyboard focus.
+                const filters = document.querySelector("form.stock-ledger__filters");
+                const nextFilters = documentResponse.querySelector("form.stock-ledger__filters");
+                if (filters && nextFilters) {
+                    ["q", "sort"].forEach((name) => {
+                        const control = filters.elements.namedItem(name);
+                        const nextControl = nextFilters.elements.namedItem(name);
+                        if (control && nextControl && document.activeElement !== control) {
+                            control.value = nextControl.value;
+                        }
+                    });
+                }
                 if (documentResponse.title) document.title = documentResponse.title;
                 if (pushState) window.history.pushState({}, "", url);
                 window.lucide?.createIcons();

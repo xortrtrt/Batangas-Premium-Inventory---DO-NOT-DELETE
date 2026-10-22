@@ -303,11 +303,44 @@ def test_http_auth_csrf_pages_and_dispatch(stock):
     assert 'data-recipe-editor' in saved.text and 'value="0.25"' in saved.text
     assert "Deduct Stock" in saved.text
     reference = re.search(r'name="submission_reference" value="([^"]+)"', page.text).group(1)
-    form = {"product_id": product, "quantity": "2", "note": "HTTP dispatch", "submission_reference": reference, "csrf_token": token}
+    form = {"product_id": product, "quantity": "2", "note": "HTTP dispatch", "submission_reference": reference,
+            "csrf_token": token, "actor_account_id": "999999", "actor_name": "Forged account"}
     response = client.post("/portal/inventory/dispatch", data=form)
     assert response.status_code == 200 and "HTTP dispatch" in response.text
+    assert "Recorded by Test Inventory" in response.text
+    assert scalar(dsn, "SELECT actor_account_id FROM inventory_movements WHERE movement_type='stock_dispatch'") == actor
     client.post("/portal/inventory/dispatch", data=form)
     assert scalar(dsn, "SELECT quantity_available FROM inventory_batches") == 3
+
+
+def test_all_stock_movements_track_account_and_keep_historical_identity(stock):
+    from app.repositories.inventory import list_inventory_movements, count_inventory_movements
+    dsn, first_actor, material, product = stock
+    with psycopg2.connect(dsn) as conn:
+        with conn.cursor() as cur:
+            cur.execute("UPDATE accounts SET username='BPadmin1',name='Shared display name' WHERE account_id=%s", (first_actor,))
+            cur.execute("""INSERT INTO accounts(account_type,name,username,password_hash,team_leader_role)
+                VALUES ('owner','Shared display name','BPadmin2','unused','inventory') RETURNING account_id""")
+            second_actor = cur.fetchone()[0]
+    add_raw_inventory_quantity(material, "1", first_actor)
+    produce_product(product, "TRACK-PROD", "2", business_today() + timedelta(days=10), second_actor)
+    add_product_batch(product, "TRACK-DIRECT", "3", business_today() + timedelta(days=10), actor_account_id=first_actor)
+    dispatch_stock(product, "1", "Account tracking", str(uuid4()), second_actor)
+    first_rows = list_inventory_movements(q="bpADMIN1")
+    assert count_inventory_movements(q="bpADMIN1") == len(first_rows) == 2
+    assert {row["action"] for row in first_rows} == {"raw_receipt", "direct_finished_receipt"}
+    assert all(row["actor_account_id"] == first_actor and row["actor_name"] == "BPadmin1" for row in first_rows)
+    second_rows = list_inventory_movements(q="BPadmin2")
+    assert count_inventory_movements(q="BPadmin2") == len(second_rows) == 3
+    assert {row["action"] for row in second_rows} == {"production_consumption", "production_output", "stock_dispatch"}
+    assert all(row["actor_account_id"] == second_actor and row["actor_name"] == "BPadmin2" for row in second_rows)
+    assert count_inventory_movements(q="BPadmin2", category="dispatch") == 1
+    assert len(list_inventory_movements(q="BPadmin2", page=2, page_size=1)) == 1
+    with psycopg2.connect(dsn) as conn:
+        with conn.cursor() as cur:
+            cur.execute("UPDATE accounts SET username='RenamedAccount',name='New display name' WHERE account_id=%s", (second_actor,))
+    assert count_inventory_movements(q="BPadmin2") == 3
+    assert count_inventory_movements(q="RenamedAccount") == 0
 
 
 def test_health_database_failure(monkeypatch):
