@@ -79,7 +79,9 @@ def validate_manifest(manifest: dict) -> None:
 def import_catalog(manifest: dict, *, apply: bool = False, dsn: str | None = None) -> dict:
     validate_manifest(manifest)
     report = {key: [] for key in ("additions", "matches", "recipe_additions", "conflicts",
-                                  "missing_images", "incomplete_recipes", "unknown_pack_sizes")}
+                                  "missing_images", "incomplete_recipes")}
+    # The archived v1 source remains intact, but these fields never enter the client database.
+    report["ignored_source_fields"] = ["base_price", "pack_size", "pack_size_unit", "pack_content_status"]
     products_with_recipe = {r["product_source_id"] for r in manifest["recipes"]}
     for item in manifest["items"]:
         if item["item_type"] == "finished_product":
@@ -87,8 +89,6 @@ def import_catalog(manifest: dict, *, apply: bool = False, dsn: str | None = Non
                 report["missing_images"].append(item["name"])
             if item["source_id"] not in products_with_recipe:
                 report["incomplete_recipes"].append(item["name"])
-            if item["pack_content_status"] == "unknown_legacy":
-                report["unknown_pack_sizes"].append(item["name"])
     with psycopg2.connect(dsn or database_dsn()) as conn:
         conn.set_session(readonly=not apply)
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
@@ -106,11 +106,9 @@ def import_catalog(manifest: dict, *, apply: bool = False, dsn: str | None = Non
             for item in manifest["items"]:
                 existing = target.get(item_key(item))
                 if existing:
-                    fields = ("unit", "pack_size", "pack_size_unit", "pack_content_status")
+                    fields = ("unit",)
                     for field in fields:
                         source_value = item[field]
-                        if field == "pack_size" and source_value is not None:
-                            source_value = Decimal(source_value)
                         if existing[field] != source_value:
                             report["conflicts"].append(f"{item['name']}: conflicting {field}")
                     mapped[item["source_id"]] = existing["item_id"]
@@ -134,11 +132,10 @@ def import_catalog(manifest: dict, *, apply: bool = False, dsn: str | None = Non
                     if item["source_id"] in mapped:
                         continue
                     cur.execute("""INSERT INTO inventory_items
-                        (item_type, name, description, category, unit, base_price, pack_size,
-                         pack_size_unit, pack_content_status, is_active, quantity_available)
-                        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,0) RETURNING item_id""",
+                        (item_type, name, description, category, unit, is_active, quantity_available)
+                        VALUES (%s,%s,%s,%s,%s,%s,0) RETURNING item_id""",
                         tuple(item[field] for field in ("item_type", "name", "description", "category", "unit",
-                              "base_price", "pack_size", "pack_size_unit", "pack_content_status", "is_active")))
+                              "is_active")))
                     mapped[item["source_id"]] = cur.fetchone()["item_id"]
                 for recipe in manifest["recipes"]:
                     p, m = mapped[recipe["product_source_id"]], mapped[recipe["material_source_id"]]

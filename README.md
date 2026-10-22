@@ -6,7 +6,7 @@ Render service and Neon PostgreSQL database.
 ## Included
 
 - Raw materials and stock receipts
-- Finished-product catalog, declared pack contents, and recipes
+- Finished-product catalog and recipes; stock counted in packs
 - Production with automatic ingredient deductions
 - Finished-product receipts, batches, and expiry tracking
 - Manual stock dispatch using earliest-expiring eligible batches
@@ -34,7 +34,7 @@ applies inventory-only migrations and never overwrites an existing account.
 
 The versioned catalog contains 18 MEATTRACK products, five raw materials, and four
 recipe rows from the October 17 local backup. Images are bundled. Missing source
-recipes and pack sizes remain explicitly incomplete.
+recipes remain explicitly incomplete. Archived price and net-content metadata is ignored by the importer and is not stored in the client database.
 
 ```text
 python tools/import_inventory_catalog.py catalog/meattrack-20261017-v1.json
@@ -64,4 +64,4 @@ Website: https://batangas-premium-inventory-do-not-delete.onrender.com/
 
 See [deployment and Neon instructions](docs/DEPLOYMENT.md) for backups, safe
 release, Render settings, catalog import, and the external five-minute cron
-health check. Changes in this checkout do not automatically deploy to the site.
+health check. Pushes to `main` automatically deploy to the existing Render service. Catalog imports and data resets never run automatically.

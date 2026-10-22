@@ -18,8 +18,6 @@ from app.web_sessions import revoke_account_sessions
 PRODUCT_SORTS = {
     "name_asc": "p.name ASC, p.item_id ASC",
     "name_desc": "p.name DESC, p.item_id DESC",
-    "price_asc": "p.base_price ASC, p.name ASC",
-    "price_desc": "p.base_price DESC, p.name ASC",
     "stock_desc": "available DESC, p.name ASC",
 }
 

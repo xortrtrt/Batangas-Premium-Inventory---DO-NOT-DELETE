@@ -164,6 +164,7 @@ def inventory_product_movement_analytics(days: int = 30, limit: int = 8) -> list
         ) product_out ON product_out.item_id = p.item_id
         WHERE p.item_type = 'finished_product'
           AND p.is_active = true
+          AND (COALESCE(product_in.total_in, 0) > 0 OR COALESCE(product_out.total_out, 0) > 0)
         ORDER BY (COALESCE(product_in.total_in, 0) + COALESCE(product_out.total_out, 0)) DESC,
                  p.name
         LIMIT %s;

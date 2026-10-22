@@ -196,7 +196,6 @@ def inventory_context(request: Request) -> dict:
         "raw_material_categories": data.raw_material_categories,
         "product_categories": data.product_categories,
         "stock_units": data.stock_units,
-        "content_units": data.content_units,
         "recipe_units": data.recipe_units,
     }
 
@@ -324,12 +323,9 @@ async def create_product(request: Request):
         data.create_product_with_recipe(
             str(form.get("name", "")),
             str(form.get("category", "")),
-            form.get("base_price", "0"),
             material_item_ids,
             quantity_required,
             quantity_required_units,
-            form.get("pack_size", ""),
-            str(form.get("pack_size_unit", "")),
             actor_account_id=shared.session_account_id(request),
         )
     except ValueError as exc:
@@ -383,28 +379,6 @@ async def produce_batch(
         return shared.redirect_to(shared.safe_portal_path("inventory", "inventory", error=str(exc)))
     return shared.redirect_to(shared.safe_portal_path("inventory", "inventory", message="Product batch produced and ingredients deducted."))
 
-@router.post("/portal/inventory/products/{product_id}/pack-content")
-@router.post("/portal/team-leader/products/{product_id}/pack-content")
-async def update_pack_content(
-    request: Request,
-    product_id: int,
-    pack_size: str = Form(...),
-    pack_size_unit: str = Form(...),
-):
-    guard = shared.require_portal_session(request)
-    if guard:
-        return guard
-    try:
-        data.update_product_pack_content(
-            product_id,
-            pack_size,
-            pack_size_unit,
-            actor_account_id=shared.session_account_id(request),
-        )
-    except ValueError as exc:
-        return shared.redirect_to(shared.safe_portal_path("inventory", "inventory", error=str(exc)))
-    return shared.redirect_to(shared.safe_portal_path("inventory", "inventory", message="Pack content updated successfully."))
-
 @router.post("/portal/inventory/batches")
 @router.post("/portal/team-leader/batches")
 async def register_direct_batch(
@@ -428,23 +402,3 @@ async def register_direct_batch(
     except ValueError as exc:
         return shared.redirect_to(shared.safe_portal_path("inventory", "batches", error=str(exc)))
     return shared.redirect_to(shared.safe_portal_path("inventory", "batches", message="Finished product batch recorded successfully."))
-
-@router.post("/portal/inventory/products/{product_id}/price")
-@router.post("/portal/team-leader/products/{product_id}/price")
-async def update_product_price(
-    request: Request,
-    product_id: int,
-    base_price: str = Form(...),
-):
-    guard = shared.require_portal_session(request)
-    if guard:
-        return guard
-    try:
-        data.update_product_price(
-            product_id,
-            base_price,
-            actor_account_id=shared.session_account_id(request),
-        )
-    except ValueError as exc:
-        return shared.redirect_to(shared.safe_portal_path("inventory", "inventory", error=str(exc)))
-    return shared.redirect_to(shared.safe_portal_path("inventory", "inventory", message="Product price updated."))

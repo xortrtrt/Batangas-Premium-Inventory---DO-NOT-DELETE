@@ -10,7 +10,7 @@ def role_key_for_account_type(account_type: str, team_leader_role: str | None = 
 def authenticate_account(email: str, password: str) -> dict | None:
     account = fetch_one(
         """
-        SELECT account_id, account_type, team_leader_role, name, email, password_hash,
+        SELECT account_id, account_type, team_leader_role, name, email, username, password_hash,
                profile_image_path, profile_image_position_x, profile_image_position_y, profile_image_scale,
                is_active, activation_status
         FROM accounts

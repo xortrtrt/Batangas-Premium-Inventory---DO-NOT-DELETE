@@ -16,11 +16,11 @@
     <title>{{ section_title }} | {{ role.label }} | MEATTRACK</title>
     <link
       rel="stylesheet"
-      href="{{ url_for('static', path='css/portal_base.css') }}?v=20261020-inventory-only"
+      href="{{ url_for('static', path='css/portal_base.css') }}?v=20261022-catalog"
     />
     <link
       rel="stylesheet"
-      href="{{ url_for('static', path='css/portals/' ~ (portal_css_key|default(role_key)) ~ '.css') }}?v=20261020-inventory-only"
+      href="{{ url_for('static', path='css/portals/' ~ (portal_css_key|default(role_key)) ~ '.css') }}?v=20261022-catalog"
     />
   </head>
   <body class="portal-body {{ portal_body_roles|default('role-' ~ role_key) }} section-{{ section }}{% if role_key in ['team-leader'] %} leader-role-{{ role.team_leader_role }}{% endif %}">

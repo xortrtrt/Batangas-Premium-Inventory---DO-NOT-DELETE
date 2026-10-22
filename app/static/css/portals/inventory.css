@@ -2881,13 +2881,8 @@
   height: 14px;
 }
 
-.role-team-leader .inventory-product-card--package .reseller-product-category,
-.role-team-leader .inventory-product-card--package .inventory-product-content > svg {
+.role-team-leader .inventory-product-card--package .reseller-product-category {
   color: var(--package-accent);
-}
-
-.role-team-leader .inventory-product-card--package .inventory-product-content {
-  background: var(--package-soft);
 }
 
 .role-team-leader .inventory-product-card-copy {
@@ -2918,7 +2913,7 @@
 
 .role-team-leader .inventory-product-stats {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   border-block: 1px solid rgba(215, 201, 154, 0.58);
   background: linear-gradient(180deg, rgba(251, 247, 236, 0.32), rgba(251, 247, 236, 0.78));
 }
@@ -2967,43 +2962,6 @@
   color: var(--text-light);
   font-size: 0.74rem;
   font-weight: 750;
-}
-
-.role-team-leader .inventory-product-content {
-  display: grid;
-  grid-template-columns: 36px minmax(0, 1fr);
-  gap: 10px;
-  align-items: center;
-  min-height: 58px;
-  padding: 10px 12px;
-  border-radius: 12px;
-  background: var(--surface-muted);
-}
-
-.role-team-leader .inventory-product-content > svg {
-  width: 19px;
-  height: 19px;
-  margin: auto;
-  color: var(--gold-deep);
-}
-
-.role-team-leader .inventory-product-content > span {
-  display: grid;
-  gap: 1px;
-  min-width: 0;
-}
-
-.role-team-leader .inventory-product-content small {
-  color: var(--text-light);
-  font-size: 0.72rem;
-  font-weight: 750;
-}
-
-.role-team-leader .inventory-product-content strong {
-  color: var(--primary);
-  font-size: 0.86rem;
-  line-height: 1.3;
-  overflow-wrap: anywhere;
 }
 
 .role-team-leader .inventory-products-empty {

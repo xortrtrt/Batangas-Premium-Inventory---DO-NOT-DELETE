@@ -8,14 +8,11 @@ from app.business_time import business_now, business_today
 from .._shared import (
     _add_log_cursor,
     clean_row,
-    content_units,
     convert_inventory_quantity,
-    display_decimal,
     get_transaction_cursor,
     normalize_inventory_name,
     normalize_inventory_text,
     parse_inventory_decimal,
-    parse_money,
     product_categories,
     recipe_units,
     require_inventory_choice,
@@ -27,28 +24,15 @@ from .movements import _insert_inventory_movement, _inventory_actor_name
 def create_product_with_recipe(
     name: str,
     category: str,
-    base_price: object,
     material_item_ids: list[object],
     quantity_required: list[object],
     quantity_required_units: list[object],
-    pack_size: object = "",
-    pack_size_unit: str = "",
     actor_account_id: int | None = None,
 ) -> dict:
     product_name = normalize_inventory_name(name, "Product name")
     product_category = require_inventory_choice(category, product_categories, "Category")
     product_unit = "pack"
-    price = parse_inventory_decimal(base_price or 0, "Base price", "0.01")
-    if price < 0:
-        raise ValueError("Base price cannot be negative.")
-
-    if not str(pack_size).strip():
-        raise ValueError("Contents per pack is required.")
-    size = parse_inventory_decimal(pack_size, "Contents per pack", "0.001")
-    if size <= 0:
-        raise ValueError("Contents per pack must be greater than zero.")
-    size_unit = require_inventory_choice(pack_size_unit, content_units, "Contents unit")
-    product_description = f"{product_name} - {display_decimal(size)} {size_unit} per pack."
+    product_description = product_name
 
     if len(material_item_ids) != len(quantity_required) or len(material_item_ids) != len(quantity_required_units):
         raise ValueError("Ingredient rows are incomplete.")
@@ -96,21 +80,11 @@ def create_product_with_recipe(
 
         cur.execute("""
             INSERT INTO inventory_items (
-                item_type, name, category, description, unit, base_price,
-                quantity_available, pack_size, pack_size_unit, pack_content_status, is_active
+                item_type, name, category, description, unit, quantity_available, is_active
             )
-            VALUES ('finished_product', %s, %s, %s, %s, %s, 0, %s, %s, 'declared', true)
-            RETURNING item_id AS product_id, name, category, unit, base_price,
-                      pack_size, pack_size_unit, pack_content_status;
-        """, (
-            product_name,
-            product_category,
-            product_description,
-            product_unit,
-            price,
-            size,
-            size_unit,
-        ))
+            VALUES ('finished_product', %s, %s, %s, %s, 0, true)
+            RETURNING item_id AS product_id, name, category, unit;
+        """, (product_name, product_category, product_description, product_unit))
         product = cur.fetchone()
 
         for material_id, required, required_unit in requirements:
@@ -183,31 +157,6 @@ def update_product_recipe(
         """, converted)
         _add_log_cursor(cur, actor_account_id=actor_account_id, action="updated_product_recipe",
                         entity_type="inventory_items", entity_id=product_id)
-
-
-def update_product_pack_content(
-    product_id: int,
-    pack_size: object,
-    pack_size_unit: str,
-    actor_account_id: int | None = None,
-) -> dict:
-    size = measurements.parse_decimal_exact(pack_size, "Contents per pack", scale=3, positive=True)
-    size_unit = measurements.require_unit(pack_size_unit, measurements.CONTENT_UNITS, "Contents unit")
-    with get_transaction_cursor() as cur:
-        cur.execute("""
-            UPDATE inventory_items
-            SET pack_size = %s,
-                pack_size_unit = %s,
-                pack_content_status = 'declared'
-            WHERE item_id = %s
-              AND item_type = 'finished_product'
-            RETURNING item_id AS product_id, name, pack_size, pack_size_unit, pack_content_status;
-        """, (size, size_unit, product_id))
-        product = cur.fetchone()
-        if product is None:
-            raise ValueError("Unknown product")
-        _add_log_cursor(cur, actor_account_id=actor_account_id, action="updated_product_pack_content", entity_type="inventory_items", entity_id=product_id)
-    return clean_row(product)
 
 
 def produce_product(
@@ -421,17 +370,3 @@ def add_product_batch(
                 source_id=batch["product_batch_id"], dedupe_key=f"batch-expiry-{batch['product_batch_id']}",
             )
     return clean_row(batch)
-
-
-def update_product_price(product_id: int, base_price: object, actor_account_id: int | None = None) -> None:
-    clean_price = parse_money(base_price, "Base price")
-    with get_transaction_cursor() as cur:
-        cur.execute("""
-            UPDATE inventory_items SET base_price = %s
-            WHERE item_id = %s AND item_type = 'finished_product'
-            RETURNING item_id;
-        """, (clean_price, product_id))
-        if not cur.fetchone():
-            raise ValueError("Unknown product.")
-        _add_log_cursor(cur, actor_account_id=actor_account_id, action="updated_product_price", entity_type="inventory_items", entity_id=product_id)
-

@@ -15,7 +15,7 @@
       </div>
       <div>
         <dt>Email</dt>
-        <dd>{{ account_profile.email if account_profile else role.email }}</dd>
+        <dd>{{ (account_profile.email or '—') if account_profile else role.email }}</dd>
       </div>
       <div>
         <dt>Role</dt>

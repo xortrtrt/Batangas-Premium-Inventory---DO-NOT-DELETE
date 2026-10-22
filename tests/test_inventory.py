@@ -53,8 +53,8 @@ def scalar(dsn, query, params=()):
 def stock(inventory_db):
     dsn, actor = inventory_db
     material = add_raw_inventory_item("Pork", "meat", "kg", "10", actor)
-    product = create_product_with_recipe("Test Tocino", "Pork", "130", [material["raw_material_id"]],
-                                         ["500"], ["g"], "500", "g", actor)
+    product = create_product_with_recipe("Test Tocino", "Pork", [material["raw_material_id"]],
+                                         ["500"], ["g"], actor)
     return dsn, actor, material["raw_material_id"], product["product_id"]
 
 
@@ -165,7 +165,7 @@ def test_catalog_preview_repeat_and_preserved_stock(stock):
     preview = import_catalog(CATALOG, dsn=dsn)
     assert not preview["applied"]
     assert scalar(dsn, "SELECT count(*) FROM inventory_items") == before_items
-    assert len(preview["unknown_pack_sizes"]) == 16
+    assert set(preview["ignored_source_fields"]) == {"base_price", "pack_size", "pack_size_unit", "pack_content_status"}
     assert len(preview["incomplete_recipes"]) == 16
     assert not preview["missing_images"]
     result = import_catalog(CATALOG, apply=True, dsn=dsn)
@@ -286,6 +286,11 @@ def test_http_auth_csrf_pages_and_dispatch(stock):
     for path in ("/portal/reseller/dashboard", "/portal/sales-supervisor/orders", "/portal/inventory/forecasts", "/api/chatbot"):
         assert client.get(path).status_code == 404
     page = client.get("/portal/inventory/inventory")
+    assert 'name="base_price"' not in page.text and 'name="pack_size"' not in page.text
+    catalog_page = client.get("/portal/inventory/finished-products")
+    assert "Unit price" not in catalog_page.text and "Declared net content" not in catalog_page.text
+    for removed in ("price", "pack-content"):
+        assert client.post(f"/portal/inventory/products/{product}/{removed}", data={}).status_code == 404
     token = re.search(r'name="csrf-token" content="([^"]+)"', page.text).group(1)
     recipe_url = f"/portal/inventory/products/{product}/recipe"
     recipe_form = {"material_item_id[]": stock[2], "quantity_required[]": "250",
@@ -434,3 +439,69 @@ def test_username_login_requires_credentials_and_entry_link_signs_out(inventory_
         replay.cookies.set(SESSION_COOKIE_NAME, old_token)
         assert replay.get("/portal/inventory/dashboard").url.path == "/login"
     assert scalar(dsn, "SELECT count(*) FROM inventory_movements") == 0
+
+
+def reset_test_credentials():
+    return [{"username": f"BPadmin{i}", "password": f"Reset-Test-{i}-Unique!"} for i in range(1, 5)]
+
+
+def test_catalog_reset_preserves_products_and_replaces_accounts(stock, tmp_path, monkeypatch):
+    from app.repositories.reporting import inventory_product_movement_analytics
+    from tools.reset_inventory import CLEAR_TABLES, reset_inventory
+    dsn, actor, material, product = stock
+    produce_product(product, "RESET-BATCH", "3", business_today() + timedelta(days=10), actor)
+    dispatch_stock(product, "1", "Before reset", str(uuid4()), actor)
+    before_name = scalar(dsn, "SELECT name FROM inventory_items WHERE item_id=%s", (product,))
+    before_movements = scalar(dsn, "SELECT count(*) FROM inventory_movements")
+    preview = reset_inventory(dsn)
+    assert not preview["applied"] and preview["finished_products_kept"] == 1
+    assert scalar(dsn, "SELECT count(*) FROM inventory_movements") == before_movements
+    with pytest.raises(ValueError, match="backup"):
+        reset_inventory(dsn, apply=True, credentials=reset_test_credentials())
+    backup = tmp_path / "test-backup.dump"
+    backup.write_bytes(b"PGDMP" + b"test-backup-header" * 4)
+    credentials = reset_test_credentials()
+    result = reset_inventory(dsn, apply=True, backup=backup, credentials=credentials)
+    assert result["accounts_created"] == [f"BPadmin{i}" for i in range(1, 5)]
+    assert scalar(dsn, "SELECT count(*) FROM inventory_items") == 1
+    assert scalar(dsn, "SELECT name FROM inventory_items WHERE item_id=%s", (product,)) == before_name
+    assert scalar(dsn, "SELECT quantity_available FROM inventory_items WHERE item_id=%s", (product,)) == 0
+    assert scalar(dsn, "SELECT count(*) FROM accounts WHERE account_id=%s", (actor,)) == 0
+    for table in CLEAR_TABLES:
+        assert scalar(dsn, f"SELECT count(*) FROM {table}") == (4 if table == "accounts" else 0)
+    assert inventory_product_movement_analytics() == []
+    for item in credentials:
+        account = accounts.authenticate_account(item["username"], item["password"])
+        assert account and account["email"] is None
+    monkeypatch.setattr(init_db, "database_dsn", lambda: dsn)
+    init_db.init_database()
+    assert scalar(dsn, "SELECT count(*) FROM accounts") == 4
+    with pytest.raises(psycopg2.Error, match="immutable"):
+        with psycopg2.connect(dsn) as conn:
+            with conn.cursor() as cur:
+                cur.execute("TRUNCATE inventory_movements")
+    assert scalar(dsn, """SELECT count(*) FROM information_schema.columns WHERE table_schema=current_schema()
+        AND table_name='inventory_items' AND column_name IN ('base_price','pack_size','pack_size_unit','pack_content_status')""") == 0
+
+
+def test_reset_failure_rolls_back_data_and_history_protection(stock, tmp_path):
+    from tools.reset_inventory import reset_inventory
+    dsn, _, material, _ = stock
+    backup = tmp_path / "test-backup.dump"
+    backup.write_bytes(b"PGDMP" + b"test-backup-header" * 4)
+    with psycopg2.connect(dsn) as conn:
+        with conn.cursor() as cur:
+            cur.execute("""CREATE FUNCTION reject_test_account() RETURNS trigger LANGUAGE plpgsql AS $$
+                BEGIN RAISE EXCEPTION 'reset insertion blocked'; END $$;
+                CREATE TRIGGER reject_test_account BEFORE INSERT ON accounts
+                FOR EACH ROW EXECUTE FUNCTION reject_test_account();""")
+    before = scalar(dsn, "SELECT count(*) FROM inventory_movements")
+    with pytest.raises(psycopg2.Error, match="reset insertion blocked"):
+        reset_inventory(dsn, apply=True, backup=backup, credentials=reset_test_credentials())
+    assert scalar(dsn, "SELECT count(*) FROM accounts") == 1
+    assert scalar(dsn, "SELECT quantity_available FROM inventory_items WHERE item_id=%s", (material,)) == 10
+    assert scalar(dsn, "SELECT count(*) FROM inventory_movements") == before
+    with pytest.raises(psycopg2.Error, match="immutable"):
+        with psycopg2.connect(dsn) as conn:
+            with conn.cursor() as cur:
+                cur.execute("DELETE FROM inventory_movements")

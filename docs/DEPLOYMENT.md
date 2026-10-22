@@ -2,7 +2,7 @@
 
 Keep the existing service `batangas-premium-inventory-do-not-delete` and its current
 Neon database. Do not create a replacement service, change the domain, reset the
-database, or use MEATTRACK's development seed script.
+database during ordinary releases, or use MEATTRACK's development seed script. An explicitly authorized catalog-only reset is described below.
 
 ## Render configuration
 
@@ -45,7 +45,7 @@ catalog data automatically.
    python tools/import_inventory_catalog.py catalog/meattrack-20261017-v1.json
    ```
 
-5. Review the report. Conflicting units, pack definitions, or recipes block the
+5. Review the report. Conflicting units or recipes block the
    entire import. Existing target metadata and stock remain unchanged. After the
    report has no conflicts, run:
 
@@ -88,3 +88,35 @@ active more often; review the existing Neon plan's compute allowance.
 Profile uploads currently use local files. Render's free filesystem is ephemeral;
 keep copies of any profile pictures. Product catalog images ship with the app and
 survive redeployments. No object-storage service is introduced by this release.
+
+
+## Explicit catalog-only reset
+
+`tools/reset_inventory.py` is a separate administrative operation and is never
+called by startup or deployment. It defaults to a read-only preview. It keeps
+finished-product IDs, names, categories, descriptions, units, activation status,
+and bundled image mappings. It clears operational records, raw materials,
+recipes, old logins, and sessions, then creates exactly four inventory logins.
+Migration 003 removes product price/net-content columns and permits username-only
+accounts without invented email addresses. Recipes still specify ingredient
+amounts per finished pack.
+
+Apply a reset only after explicit authorization, a complete custom-format
+`pg_dump`, and a successful restore/reset rehearsal on a disposable database.
+Pause edits, save a final backup, and deploy the compatible application before
+applying the reset. Keep generated credentials in a private local JSON file
+outside the repository, containing an `accounts` array with `username` and
+`password` for BPadmin1 through BPadmin4. Each password must be unique.
+
+```text
+python tools/reset_inventory.py
+python tools/reset_inventory.py --apply --backup <validated-backup.dump> --credentials-file <private-accounts.json>
+```
+
+The tool stops on unexpected tables, locks the known inventory tables, and resets
+in one transaction. Only the history-protection triggers are disabled for that
+transaction and re-enabled before commit; failures roll back both data and
+trigger changes. Schema-migration records remain. Business settings fall back
+to the application's defaults. Never use the reset tool for routine stock edits.
+After migration 003, code that queries removed columns requires the pre-release
+backup for rollback; merely selecting an older Render release is insufficient.

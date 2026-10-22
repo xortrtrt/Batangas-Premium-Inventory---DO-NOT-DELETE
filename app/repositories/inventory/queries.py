@@ -57,8 +57,8 @@ def list_inventory_items(q: str = "", category: str = "", page: int | None = Non
                    WHEN 'raw_material' THEN 'Raw material'
                    WHEN 'finished_product' THEN 'Finished product'
                END AS item_type_label,
-               ii.category, ii.name, ii.unit, ii.base_price,
-               ii.pack_size, ii.pack_size_unit, ii.pack_content_status, ii.is_active,
+               ii.category, ii.name, ii.unit,
+               ii.is_active,
                CASE
                    WHEN ii.item_type = 'raw_material' THEN ii.quantity_available
                    ELSE COALESCE(SUM(ib.quantity_available) FILTER (
@@ -70,7 +70,6 @@ def list_inventory_items(q: str = "", category: str = "", page: int | None = Non
         LEFT JOIN inventory_batches ib ON ib.item_id = ii.item_id
         WHERE {where_sql}
         GROUP BY ii.item_id, ii.item_type, ii.category, ii.name, ii.unit,
-                 ii.base_price, ii.pack_size, ii.pack_size_unit, ii.pack_content_status,
                  ii.quantity_available, ii.is_active
         ORDER BY {order_sql}
         {paging_sql};
@@ -182,8 +181,8 @@ def list_products(
         params.extend([page_size, (page - 1) * page_size])
     order_sql = safe_sort_sql(sort, PRODUCT_SORTS, "p.item_id")
     return clean_row(fetch_all("""
-        SELECT p.item_id AS product_id, p.name, p.description, p.unit, p.base_price, p.is_active,
-               p.category, p.pack_size, p.pack_size_unit, p.pack_content_status,
+        SELECT p.item_id AS product_id, p.name, p.description, p.unit, p.is_active,
+               p.category,
                (
                    SELECT COUNT(*)
                    FROM product_recipes pr
@@ -199,8 +198,7 @@ def list_products(
         LEFT JOIN inventory_batches pb ON pb.item_id = p.item_id
         WHERE p.item_type = 'finished_product'
           {where_extra}
-        GROUP BY p.item_id, p.name, p.description, p.unit, p.base_price, p.is_active, p.category,
-                 p.pack_size, p.pack_size_unit, p.pack_content_status
+        GROUP BY p.item_id, p.name, p.description, p.unit, p.is_active, p.category
         ORDER BY {order_sql}
         {paging_sql};
     """.format(

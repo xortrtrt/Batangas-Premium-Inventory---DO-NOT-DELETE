@@ -26,7 +26,7 @@ def establish_portal_session(request: Request, account: dict) -> RedirectRespons
     request.session["role_key"] = "inventory"
     request.session["team_leader_role"] = "inventory"
     request.session["account_name"] = account["name"]
-    request.session["account_email"] = account["email"]
+    request.session["account_email"] = account.get("email") or account.get("username") or ""
     request.session["profile_image_path"] = account.get("profile_image_path") or ""
     request.session["profile_image_position_x"] = account.get("profile_image_position_x", 50)
     request.session["profile_image_position_y"] = account.get("profile_image_position_y", 50)

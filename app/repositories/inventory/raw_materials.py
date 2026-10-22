@@ -53,8 +53,8 @@ def add_raw_inventory_item(
             raise ValueError(f"{existing['name']} already exists. Use Add quantity instead.")
 
         cur.execute("""
-            INSERT INTO inventory_items (item_type, name, category, unit, quantity_available, base_price, is_active)
-            VALUES ('raw_material', %s, %s, %s, %s, 0, true)
+            INSERT INTO inventory_items (item_type, name, category, unit, quantity_available, is_active)
+            VALUES ('raw_material', %s, %s, %s, %s, true)
             RETURNING item_id AS raw_material_id, category, name, unit, quantity_available AS available;
         """, (item_name, item_category, item_unit, amount))
         item = cur.fetchone()

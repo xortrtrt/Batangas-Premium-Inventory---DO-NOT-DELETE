@@ -18,21 +18,6 @@
         <span><i data-lucide="boxes"></i> Available stock</span>
         <strong>{{ product.available|number }} <small>{{ product.unit }}</small></strong>
       </div>
-      <div class="inventory-product-stat inventory-product-price">
-        <span><i data-lucide="philippine-peso"></i> Unit price</span>
-        <strong>{{ product.base_price|currency }} <small>/{{ product.unit }}</small></strong>
-      </div>
-    </div>
-    <div class="inventory-product-content">
-      <i data-lucide="{{ 'package-open' if is_package else 'scale' }}"></i>
-      <span>
-        <small>{{ 'Package measurement' if is_package else 'Declared net content' }}</small>
-        {% if product.pack_content_status == "declared" %}
-        <strong>{{ product.pack_size|number }} {{ product.pack_size_unit }} per {{ product.unit }}</strong>
-        {% else %}
-        <strong class="muted">Not configured</strong>
-        {% endif %}
-      </span>
     </div>
   </div>
 </article>
