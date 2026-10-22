@@ -1,8 +1,8 @@
 # Existing Render service and Neon database
 
-Keep the existing service `batangas-premium-inventory-do-not-delete` and its current
-Neon database. Do not create a replacement service, change the domain, reset the
-database during ordinary releases, or use MEATTRACK's development seed script. An explicitly authorized catalog-only reset is described below.
+The primary service is `batangas-premium-inventory` (`srv-dbd2708473hc73ajs7cg`), created on October 22, 2026 with explicit authorization. It uses the same existing Neon database and all six environment variables copied from the original service. It runs Python 3 on the Free plan in Singapore, deploys `main`, and checks `/health`.
+
+The original service, now labeled `bpinventory` (`srv-dbb3q66i0phs73eraj5g`), remains available at https://batangas-premium-inventory-do-not-delete.onrender.com/. Do not delete it without explicit authorization. Do not reset the database during ordinary releases or use MEATTRACK's development seed script. An explicitly authorized catalog-only reset is described below.
 
 ## Render configuration
 
@@ -66,10 +66,10 @@ not delete dispatch records or downgrade the database schema to roll back code.
 The cron-job.org job was created and enabled on October 20, 2026 (Asia/Manila),
 job ID `8682652`. A manual test returned HTTP 200 with the database connected. The first scheduled
 execution also succeeded at 12:00:21 PM (Asia/Manila), taking 239 ms.
-Use the existing job rather than creating duplicates. Its configuration is:
+On October 22, 2026, the existing job was updated to the new service URL. Its manual test returned HTTP 200 with the database connected in 258 ms. Use this same job rather than creating duplicates. Its configuration is:
 
 - Title: `Batangas Premium Inventory — Health Check`
-- URL: `https://batangas-premium-inventory-do-not-delete.onrender.com/health`
+- URL: `https://batangas-premium-inventory.onrender.com/health`
 - Schedule: every five minutes, timezone `Asia/Manila`, without an expiry date.
 - Method: `GET`; no authentication, request body, or custom headers.
 - Timeout: 30 seconds. Require HTTP 200; redirects should not count as success.

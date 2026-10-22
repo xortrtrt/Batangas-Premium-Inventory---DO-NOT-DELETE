@@ -61,8 +61,10 @@ client's Neon production connection as `TEST_DATABASE_URL`.
 
 ## Existing deployment
 
-Website: https://batangas-premium-inventory-do-not-delete.onrender.com/
+Website: https://batangas-premium-inventory.onrender.com/
 
 See [deployment and Neon instructions](docs/DEPLOYMENT.md) for backups, safe
 release, Render settings, catalog import, and the external five-minute cron
 health check. Pushes to `main` automatically deploy to the existing Render service. Catalog imports and data resets never run automatically.
+
+The original service at https://batangas-premium-inventory-do-not-delete.onrender.com/ remains available. Both services use the same existing Neon database; no catalog or accounts were recreated for the new address.
