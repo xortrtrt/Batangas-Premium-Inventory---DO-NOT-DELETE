@@ -22,9 +22,12 @@ from .queries import (
     list_products,
     list_raw_materials,
 )
-from .raw_materials import add_raw_inventory_item, add_raw_inventory_quantity
+from .raw_materials import add_raw_inventory_item, add_raw_inventory_quantity, deduct_raw_material, remove_raw_material, reactivate_raw_material
 
 __all__ = [
+    "deduct_raw_material",
+    "remove_raw_material",
+    "reactivate_raw_material",
     "dispatch_stock",
     "inventory_item_filter",
     "list_inventory_items",

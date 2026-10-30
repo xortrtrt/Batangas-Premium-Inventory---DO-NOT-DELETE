@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import date
+from typing import Annotated
 from uuid import uuid4
 
 from fastapi import APIRouter, Form, Request
@@ -11,6 +12,54 @@ from app import repositories as data
 from app.portals import shared
 
 router = APIRouter()
+
+
+@router.post("/portal/inventory/raw-materials/{raw_material_id}/remove")
+@router.post("/portal/team-leader/raw-materials/{raw_material_id}/remove")
+def remove_material(request: Request, raw_material_id: int, confirmed: Annotated[str, Form()] = ""):
+    guard = shared.require_portal_session(request)
+    if guard:
+        return guard
+    try:
+        data.remove_raw_material(raw_material_id, confirmed == "yes", shared.session_account_id(request))
+    except ValueError as exc:
+        return shared.redirect_to(shared.safe_portal_path("inventory", "raw-materials", error=str(exc)))
+    return shared.redirect_to(shared.safe_portal_path("inventory", "raw-materials",
+                                                     message="Raw material removed from active inventory. Stock history is preserved."))
+
+
+@router.post("/portal/inventory/raw-materials/deduct")
+@router.post("/portal/team-leader/raw-materials/deduct")
+def deduct_material(
+    request: Request,
+    raw_material_id: Annotated[int, Form()],
+    quantity: Annotated[str, Form()],
+    note: Annotated[str, Form()],
+    submission_reference: Annotated[str, Form()],
+):
+    guard = shared.require_portal_session(request)
+    if guard:
+        return guard
+    try:
+        result = data.deduct_raw_material(raw_material_id, quantity, note, submission_reference,
+                                          shared.session_account_id(request))
+    except ValueError as exc:
+        return shared.redirect_to(shared.safe_portal_path("inventory", "inventory", modal="deduct-material", error=str(exc)))
+    message = "Raw-material deduction already recorded." if result["already_recorded"] else "Raw-material stock deducted successfully."
+    return shared.redirect_to(shared.safe_portal_path("inventory", "logs", type="deductions", message=message))
+
+
+@router.post("/portal/inventory/raw-materials/{raw_material_id}/reactivate")
+@router.post("/portal/team-leader/raw-materials/{raw_material_id}/reactivate")
+def reactivate_material(request: Request, raw_material_id: int):
+    guard = shared.require_portal_session(request)
+    if guard:
+        return guard
+    try:
+        data.reactivate_raw_material(raw_material_id, shared.session_account_id(request))
+    except ValueError as exc:
+        return shared.redirect_to(shared.safe_portal_path("inventory", "raw-materials", type="archived", error=str(exc)))
+    return shared.redirect_to(shared.safe_portal_path("inventory", "raw-materials", message="Raw material reactivated with its saved stock balance."))
 
 
 @router.post("/portal/inventory/dispatch")
@@ -34,7 +83,7 @@ def dispatch_inventory(
 
 def logs_page(request: Request, page_size: int = 10, inventory_only: bool = True) -> dict:
     filters = shared.portal_filters(request)
-    movement_category = filters["type"] if filters["type"] in {"opening", "receipts", "production", "dispatch"} else ""
+    movement_category = filters["type"] if filters["type"] in {"opening", "receipts", "production", "dispatch", "deductions"} else ""
     if inventory_only:
         items = data.list_inventory_movements(
             q=filters["q"],
@@ -72,17 +121,18 @@ def finished_inventory_products_page(request: Request, page_size: int = 8) -> di
 
 def raw_materials_inventory_page(request: Request, page_size: int = 10) -> dict:
     filters = shared.portal_filters(request)
+    show_removed = filters["type"] == "archived"
     material_category = filters["type"] if filters["type"] in data.raw_material_categories else ""
     category = f"raw_material:{material_category}" if material_category else "raw_material"
-    items = data.list_inventory_items(q=filters["q"], category=category, page=filters["page"], page_size=page_size, sort=filters["sort"])
-    total = data.count_inventory_items(q=filters["q"], category=category)
+    items = data.list_inventory_items(q=filters["q"], category=category, page=filters["page"], page_size=page_size, sort=filters["sort"], raw_material_active=not show_removed)
+    total = data.count_inventory_items(q=filters["q"], category=category, raw_material_active=not show_removed)
     page = shared.paged(
         items,
         total,
         filters["page"],
         page_size,
         q=filters["q"],
-        type=material_category,
+        type="archived" if show_removed else material_category,
         sort=filters["sort"],
     )
     current_page = page["pagination"]["page"]
@@ -108,9 +158,10 @@ def raw_materials_inventory_context(request: Request) -> dict:
         "raw_materials_page": raw_materials_page,
         "raw_items": raw_items,
         "raw_material_tabs": (
-            ("", "All materials"),
+            ("", "Active materials"),
             ("meat", "Meat"),
             ("raw_material", "Other supplies"),
+            ("archived", "Removed materials"),
         ),
     }
 
@@ -188,6 +239,7 @@ def inventory_context(request: Request) -> dict:
     recipe_product_ids = [product["product_id"] for product in recipe_products_page["items"]]
     return {
         "dispatch_reference": str(uuid4()),
+        "raw_deduction_reference": str(uuid4()),
         "products": data.list_products(),
         "recipe_products_page": recipe_products_page,
         "recipe_products": recipe_products_page["items"],
@@ -222,6 +274,7 @@ def logs_context(request: Request) -> dict:
             ("receipts", "Receipts"),
             ("production", "Production"),
             ("dispatch", "Dispatch"),
+            ("deductions", "Raw deductions"),
         ),
     }
 

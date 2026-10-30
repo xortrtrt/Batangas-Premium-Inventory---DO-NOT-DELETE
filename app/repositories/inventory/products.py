@@ -72,7 +72,8 @@ def create_product_with_recipe(
             FROM inventory_items
             WHERE item_type = 'raw_material'
               AND is_active = true
-              AND item_id = ANY(%s);
+              AND item_id = ANY(%s)
+            ORDER BY item_id FOR UPDATE;
         """, (material_ids,))
         materials = {row["item_id"]: row for row in cur.fetchall()}
         if len(materials) != len(material_ids):

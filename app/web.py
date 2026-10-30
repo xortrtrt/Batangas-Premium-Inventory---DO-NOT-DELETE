@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 from datetime import date, datetime
+from decimal import Decimal
 from pathlib import Path
 from urllib.parse import quote, urlencode
 
@@ -63,6 +64,15 @@ def number(value: float | int | None) -> str:
         return f"{value:,.2f}"
     return f"{value:,.0f}"
 
+
+def stock_quantity(value: Decimal | float | int | None) -> str:
+    """Display the same three-decimal precision accepted by stock operations."""
+    if value is None:
+        return "—"
+    if value == 0:
+        return "0.00"
+    return f"{value:,.3f}".rstrip("0").rstrip(".")
+
 def nice_date(value: date | datetime | str) -> str:
     if isinstance(value, datetime):
         localized = value.astimezone(BUSINESS_ZONE) if value.tzinfo is not None else value
@@ -88,6 +98,7 @@ def configure_templates(csrf_token) -> None:
     templates.env.filters.update(
         currency=currency,
         number=number,
+        stock_quantity=stock_quantity,
         nice_date=nice_date,
         product_image=product_image,
         media_url=media_url,

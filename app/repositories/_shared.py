@@ -69,6 +69,9 @@ content_units = list(measurements.CONTENT_UNITS)
 recipe_units = list(measurements.RECIPE_UNITS)
 
 INVENTORY_LOG_ACTIONS = (
+    "deducted_raw_material",
+    "removed_raw_material",
+    "reactivated_raw_material",
     "updated_raw_inventory",
     "added_raw_inventory_quantity",
     "created_product_recipe",

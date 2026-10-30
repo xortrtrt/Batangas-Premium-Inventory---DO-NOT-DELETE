@@ -2,8 +2,8 @@
   <header class="stock-ledger__header">
     <div>
       <span class="stock-ledger__eyebrow">Production supply</span>
-      <h2 id="material-ledger-title">Raw materials</h2>
-      <p>Current ingredient and supply levels, ready for production.</p>
+      <h2 id="material-ledger-title" data-async-filter-sync="material-title">{{ 'Removed raw materials' if raw_materials_page.filters.type == 'archived' else 'Raw materials' }}</h2>
+      <p>Zero-stock materials stay listed. Use Remove material only when an item is no longer needed.</p>
     </div>
     <div class="stock-ledger__count" aria-label="{{ raw_materials_page.pagination.total }} total materials" data-async-filter-sync="raw-material-count">
       <strong>{{ raw_materials_page.pagination.total|number }}</strong>
@@ -59,13 +59,30 @@
         <span>{{ category_label }}</span>
       </div>
       <div class="material-row__quantity">
-        <span>{{ 'Inactive' if not item.is_active else 'Out of stock' if is_empty else 'Available' }}</span>
-        <strong>{{ item.available|number }} <small>{{ item.unit }}</small></strong>
+        <span>{{ 'Removed' if not item.is_active else 'Out of stock' if is_empty else 'Available' }}</span>
+        <strong>{{ item.available|stock_quantity }} <small>{{ item.unit }}</small></strong>
       </div>
       <div class="material-row__level" aria-label="Relative stock level: {{ item.stock_percent }} percent of the highest quantity on this page">
         <span><i style="--stock-fill: {{ item.stock_percent }}%"></i></span>
         <small>Relative stock level</small>
       </div>
+      {% if item.is_active %}
+      <div class="material-removal">
+        <button class="material-removal__trigger" type="button" aria-label="Remove {{ item.name }}" aria-expanded="false" aria-controls="remove-material-{{ item.item_id }}" data-open-material-removal><i data-lucide="trash-2" aria-hidden="true"></i><span>Remove</span></button>
+      </div>
+        <form class="material-removal__form form-panel bare" id="remove-material-{{ item.item_id }}" action="/portal/inventory/raw-materials/{{ item.item_id }}/remove" method="post" hidden>
+          <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}" />
+          <p>Remove <strong>{{ item.name }}</strong>?</p>
+          <label class="material-removal__confirmation"><input required type="checkbox" name="confirmed" value="yes" /> Yes, I’m sure.</label>
+          <div class="material-removal__actions"><button class="button subtle" type="button" data-cancel-material-removal>Cancel</button><button class="button danger" type="submit">Remove</button></div>
+        </form>
+
+      {% else %}
+      <form class="material-reactivate" action="/portal/inventory/raw-materials/{{ item.item_id }}/reactivate" method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}" />
+        <button class="button subtle" type="submit">Reactivate {{ item.name }}</button>
+      </form>
+      {% endif %}
     </article>
     {% else %}
     <div class="material-empty">

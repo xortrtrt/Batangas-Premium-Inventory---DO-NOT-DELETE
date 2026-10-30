@@ -6,6 +6,7 @@ Render service and Neon PostgreSQL database.
 ## Included
 
 - Raw materials and stock receipts
+- Manual raw-material deductions with required reason, stock-unit quantities, and account tracking
 - Finished-product catalog and recipes; stock counted in packs
 - Production with automatic ingredient deductions
 - Finished-product receipts, batches, and expiry tracking
@@ -68,3 +69,34 @@ release, Render settings, catalog import, and the external five-minute cron
 health check. Pushes to `main` automatically deploy to the existing Render service. Catalog imports and data resets never run automatically.
 
 The original service at https://batangas-premium-inventory-do-not-delete.onrender.com/ remains available. Both services use the same existing Neon database; no catalog or accounts were recreated for the new address.
+
+
+## Local review: raw-material deductions
+
+Open Inventory Workspace → Deduct raw materials. Select a material, enter the
+quantity in its displayed stock unit (kg, g, or ml; up to three decimal places),
+and supply a reason such as spoilage or wastage. The deduction records the
+signed-in account, timestamp, unique reference, and before/after balances.
+Insufficient stock is rejected atomically; replaying a successful submission
+never deducts it twice. Production and manual deductions lock the same material
+stock. Inventory Logs → Raw deductions shows these entries and supports account
+search.
+
+Migration `004_raw_material_deductions.sql` must be applied to a local or
+backed-up target database before running this version. It adds an optional unique
+reference to movement records and retains existing history. No reset or catalog
+import is required for this feature.
+
+
+## Raw-material soft deletion
+
+Raw Materials → Remove material hides an item from active inventory and selection
+lists only when no product recipe references it. Check “Yes, I’m sure” and press Remove to confirm.
+Its balance, original item ID, and movement history are preserved, including when
+stock is above zero. Removal is never triggered by a zero balance: active items
+remain visible as `0.00 kg`, `0.00 g`, or `0.00 ml`.
+
+Raw Materials → Removed materials lists hidden items and their saved balances.
+Reactivate returns the same item to active inventory. Adding a new item with a
+removed material's name is blocked with a link direction to reactivate it instead.
+Removal and reactivation record the signed-in account in the activity audit.

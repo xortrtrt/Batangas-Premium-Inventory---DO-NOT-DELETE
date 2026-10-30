@@ -13,6 +13,7 @@ from .._shared import (
 
 
 MOVEMENT_CATEGORY_TYPES = {
+    "deductions": ("raw_deduction",),
     "opening": ("opening_balance",),
     "receipts": ("raw_receipt", "direct_finished_receipt"),
     "production": ("production_consumption", "production_output"),
@@ -31,9 +32,9 @@ def inventory_item_filter(category: str) -> tuple[str, str]:
     return "", raw.replace("_", " ")
 
 
-def list_inventory_items(q: str = "", category: str = "", page: int | None = None, page_size: int = 10, sort: str = "") -> list[dict]:
-    where = ["ii.item_type IN ('raw_material', 'finished_product')"]
-    params: list[object] = []
+def list_inventory_items(q: str = "", category: str = "", page: int | None = None, page_size: int = 10, sort: str = "", raw_material_active: bool = True) -> list[dict]:
+    where = ["ii.item_type IN ('raw_material', 'finished_product')", "(ii.item_type <> 'raw_material' OR ii.is_active = %s)"]
+    params: list[object] = [raw_material_active]
     q = q.strip()
     item_type, item_category = inventory_item_filter(category)
     if q:
@@ -76,9 +77,9 @@ def list_inventory_items(q: str = "", category: str = "", page: int | None = Non
     """.format(where_sql=" AND ".join(where), order_sql=order_sql, paging_sql=paging_sql), tuple(params) or None))
 
 
-def count_inventory_items(q: str = "", category: str = "") -> int:
-    where = ["ii.item_type IN ('raw_material', 'finished_product')"]
-    params: list[object] = []
+def count_inventory_items(q: str = "", category: str = "", raw_material_active: bool = True) -> int:
+    where = ["ii.item_type IN ('raw_material', 'finished_product')", "(ii.item_type <> 'raw_material' OR ii.is_active = %s)"]
+    params: list[object] = [raw_material_active]
     q = q.strip()
     item_type, item_category = inventory_item_filter(category)
     if q:
@@ -325,6 +326,7 @@ def list_inventory_movements(
                im.actor_name,
                im.note,
                im.dispatch_id,
+               im.raw_deduction_reference,
                im.created_at
         FROM inventory_movements im
         JOIN inventory_items ii ON ii.item_id = im.item_id

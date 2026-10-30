@@ -402,6 +402,38 @@
         });
     }
 
+    document.addEventListener("click", (event) => {
+        const trigger = event.target.closest("[data-open-material-removal]");
+        const cancel = event.target.closest("[data-cancel-material-removal]");
+        if (!trigger && !cancel) return;
+        const row = (trigger || cancel).closest(".material-row");
+        const form = row.querySelector(".material-removal__form");
+        const button = row.querySelector("[data-open-material-removal]");
+        const open = trigger && form.hidden;
+        form.hidden = !open;
+        button.setAttribute("aria-expanded", String(Boolean(open)));
+        if (open) form.querySelector('input[type="checkbox"]').focus();
+        else {
+            form.reset();
+            button.focus();
+        }
+    });
+
+    document.addEventListener("change", (event) => {
+        const select = event.target;
+        if (!(select instanceof HTMLSelectElement) || !select.matches("[data-deduction-material]")) return;
+        const option = select.selectedOptions[0];
+        const form = select.closest("form");
+        const unitHint = form.querySelector("[data-deduction-unit]");
+        const input = form.querySelector('input[name="quantity"]');
+        const unit = option?.dataset.stockUnit;
+        unitHint.textContent = unit
+            ? `Enter the quantity in ${unit}. Available: ${option.dataset.stockAvailable} ${unit}.`
+            : "Select a material to see its stock unit and available balance.";
+        input.removeAttribute("max");
+        if (unit) input.max = option.dataset.stockAvailable;
+    });
+
     function bindRecipeRows() {
         function updateRemoveButtons(rows) {
             const recipeRows = rows.querySelectorAll("[data-recipe-row]");

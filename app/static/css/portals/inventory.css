@@ -4989,3 +4989,110 @@
   from { opacity: 0; transform: translateY(-4px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+
+/* Compact raw-material register and inline confirmation. */
+.role-team-leader .material-ledger .stock-ledger__header { padding: 24px; }
+.role-team-leader .material-ledger .stock-ledger__header h2 { font-size: clamp(1.5rem, 2vw, 1.9rem); }
+.role-team-leader .material-ledger .movement-categories { padding-inline: 24px; gap: 6px; }
+.role-team-leader .material-ledger .stock-ledger__filters { padding: 16px 24px 20px; gap: 12px; }
+.role-team-leader .material-ledger .stock-clear-button[hidden] { display: none; }
+.role-team-leader .material-ledger .material-row {
+  grid-template-columns: 42px minmax(140px, 1fr) minmax(100px, .4fr) minmax(100px, .5fr) 100px;
+  min-height: 88px;
+  gap: 16px;
+  padding: 18px 24px;
+}
+.role-team-leader .material-ledger .material-row__identity strong { white-space: normal; }
+.role-team-leader .material-ledger .material-row__quantity { gap: 6px; }
+.role-team-leader .material-ledger .material-row__quantity strong { font-variant-numeric: tabular-nums; }
+.role-team-leader .material-ledger .material-row__level {
+  grid-column: auto;
+  justify-items: stretch;
+  margin: 0;
+  gap: 8px;
+}
+.role-team-leader .material-ledger .material-row__level > span { width: 100%; height: 5px; }
+.role-team-leader .material-ledger .material-row__level small { font-size: .65rem; }
+.role-team-leader .material-removal { justify-self: stretch; }
+.role-team-leader .material-removal__trigger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 44px;
+  padding: 8px 10px;
+  border: 1px solid var(--ledger-line);
+  border-radius: 9px;
+  color: var(--ledger-out);
+  font-size: .76rem;
+  font-weight: 750;
+  list-style: none;
+  cursor: pointer;
+  transition: background-color 150ms ease, border-color 150ms ease;
+}
+.role-team-leader .material-removal__trigger svg { width: 15px; height: 15px; }
+.role-team-leader .material-removal__trigger:hover,
+.role-team-leader .material-removal__trigger[aria-expanded="true"] {
+  background: var(--ledger-out-soft);
+  border-color: var(--ledger-out);
+}
+.role-team-leader .material-removal__trigger:focus-visible {
+  outline: 2px solid var(--ledger-out);
+  outline-offset: 3px;
+}
+.role-team-leader .material-removal__form {
+  grid-column: 2 / -1;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 20px;
+  margin: 0;
+  padding: 14px 16px;
+  border: 1px solid var(--ledger-line);
+  border-radius: 10px;
+  background: var(--ledger-out-soft);
+}
+.role-team-leader .material-removal__form[hidden] { display: none; }
+.role-team-leader .material-removal__form p { flex: 1 1 150px; margin: 0; font-size: .85rem; line-height: 1.5; }
+.role-team-leader .material-removal__form .material-removal__confirmation {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  font-size: .8rem;
+  cursor: pointer;
+}
+.role-team-leader .material-removal__confirmation input {
+  width: 18px;
+  height: 18px;
+  min-height: 18px;
+  margin: 0;
+  padding: 0;
+  flex: 0 0 auto;
+}
+.role-team-leader .material-removal__actions { display: flex; gap: 8px; margin-left: auto; }
+.role-team-leader .material-removal__actions .button { min-height: 40px; padding: 9px 14px; font-size: .78rem; }
+.role-team-leader .material-reactivate { margin: 0; }
+.role-team-leader .material-reactivate .button { min-height: 44px; padding: 8px 10px; white-space: normal; font-size: .76rem; }
+@media (max-width: 1150px) {
+  .role-team-leader .material-ledger .material-row { grid-template-columns: 42px minmax(0, 1fr) 100px 100px; }
+  .role-team-leader .material-ledger .material-row__level { display: none; }
+}
+@media (max-width: 620px) {
+  .role-team-leader .material-ledger .stock-ledger__header { padding: 20px 16px; }
+  .role-team-leader .material-ledger .movement-categories { padding-inline: 16px; }
+  .role-team-leader .material-ledger .stock-ledger__filters { padding: 12px 16px 16px; }
+  .role-team-leader .material-ledger .material-row { grid-template-columns: 36px minmax(0, 1fr) 84px; gap: 12px; padding: 16px; }
+  .role-team-leader .material-ledger .material-row__icon { width: 36px; height: 36px; }
+  .role-team-leader .material-ledger .material-row__quantity { justify-items: end; }
+  .role-team-leader .material-removal,
+  .role-team-leader .material-reactivate { grid-column: 2 / -1; justify-self: end; min-width: 100px; }
+  .role-team-leader .material-removal__form { grid-column: 1 / -1; gap: 8px 12px; padding: 12px; }
+  .role-team-leader .material-removal__form p { flex-basis: 100%; }
+  .role-team-leader .material-removal__actions { margin-left: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .role-team-leader .material-removal__trigger { transition: none; }
+}
