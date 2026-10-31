@@ -8,7 +8,9 @@ and four recipe ingredient rows covering two products.
 There are 16 products without declared pack sizes and 16 without recipes in the
 source. These remain unknown/incomplete; they are not inferred from photographs
 or development seed data. Source names, categories, measurements and prices are
-preserved, including legacy package products. Catalog images are copied into the
+preserved, except the three legacy packages are now classified as Package: Area
+Distributor's Package, Resellers Package, and Trial Package. Their actual finished-
+goods contents remain unconfigured until supplied by staff. Catalog images are copied into the
 app's existing static image directory with exact name mappings.
 
 No accounts, passwords, source balances, batches, movements or sales data are

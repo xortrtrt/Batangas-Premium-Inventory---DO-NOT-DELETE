@@ -94,8 +94,9 @@ def product_page(request: Request, page_size: int = 12, active_only: bool = Fals
         page_size=page_size,
         sort=filters["sort"],
         active_only=active_only,
+        include_packages=False,
     )
-    total = data.count_products(q=filters["q"], category=filters["type"], active_only=active_only)
+    total = data.count_products(q=filters["q"], category=filters["type"], active_only=active_only, include_packages=False)
     return paged(items, total, filters["page"], page_size, q=filters["q"], type=filters["type"], sort=filters["sort"])
 
 def notifications_context(request: Request, page_size: int = 15) -> dict:

@@ -9,6 +9,16 @@
   {% include "portals/inventory/raw_materials.html" %}
 {% elif section == "finished-products" %}
   {% include "portals/inventory/finished_products.html" %}
+{% elif section == "product-details" %}
+  {% if is_package_page|default(false) %}
+  {% include "portals/inventory/package_details.html" %}
+  {% else %}
+  {% include "portals/inventory/product_details.html" %}
+  {% endif %}
+{% elif section == "package-details" %}
+  {% include "portals/inventory/package_details.html" %}
+{% elif section == "removed-batches" %}
+  {% include "portals/inventory/removed_batches.html" %}
 {% elif section == "batches" %}
   {% include "portals/inventory/batches.html" %}
 {% elif section == "logs" %}

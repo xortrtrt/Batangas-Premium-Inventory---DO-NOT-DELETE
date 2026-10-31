@@ -1,0 +1,34 @@
+{% set archive = removed_batches %}
+<section class="panel lifecycle-workspace removed-batches-page">
+  <header class="archive-header">
+    <div><span class="eyebrow">Inventory records</span><h2>Removed batches</h2><p>A clear record of what left stock, why, and who recorded it.</p></div>
+    <a class="button subtle" href="{{ '/portal/inventory/product-details?product_id=' ~ archive.product.item_id if archive.product else '/portal/inventory/batches' }}"><i data-lucide="arrow-left" aria-hidden="true"></i>{{ 'Back to product' if archive.product else 'Active batches' }}</a>
+  </header>
+  <section class="archive-ledger" aria-label="Removed batch records">
+    <div class="archive-toolbar">
+      <div class="archive-heading"><span class="archive-heading-icon"><i data-lucide="archive" aria-hidden="true"></i></span><div><h3>Batch archive <span class="archive-count">{{ archive.pagination.total }}</span></h3><p>Removed from stock. History preserved.</p></div></div>
+      <span class="archive-order"><i data-lucide="arrow-down-wide-narrow" aria-hidden="true"></i>Latest removals first</span>
+    </div>
+    <form class="archive-search" method="get">
+      {% if archive.product %}<input type="hidden" name="product_id" value="{{ archive.product.item_id }}">{% endif %}
+      <label class="archive-search-field" for="removed-batch-search"><i data-lucide="search" aria-hidden="true"></i><span class="sr-only">Search removed batches</span><input id="removed-batch-search" name="q" value="{{ archive.q }}" placeholder="Search batch, product, reason, or account" autocomplete="off"></label>
+      <button class="button subtle" type="submit">Search<i data-lucide="arrow-right" aria-hidden="true"></i></button>
+    </form>
+    {% if archive.product or archive.q %}<div class="archive-filters">{% if archive.product %}<span><i data-lucide="package" aria-hidden="true"></i>{{ archive.product.name }}</span>{% endif %}{% if archive.q %}<span>Search: {{ archive.q }}</span>{% endif %}<a href="/portal/inventory/removed-batches">Clear filters<i data-lucide="x" aria-hidden="true"></i></a></div>{% endif %}
+    <div class="archive-records">
+    {% for batch in archive['items'] %}
+      <article class="archive-record">
+        <header class="archive-record-heading">
+          <div class="archive-product"><img src="{{ batch.product_name|product_image|media_url }}" alt="{{ batch.product_name }}" width="64" height="64" loading="lazy"><div><span class="archive-state"><span aria-hidden="true"></span>Removed</span><h4>{{ batch.product_name }}</h4><span class="archive-batch-code">{{ batch.batch_code }}</span></div></div>
+          <div class="archive-quantity"><span>Packs removed</span><strong>{{ batch.quantity_removed|number }}<small>packs</small></strong></div>
+        </header>
+        <div class="archive-record-body"><div class="archive-reason"><span class="lifecycle-mini-label"><i data-lucide="message-square-text" aria-hidden="true"></i>Removal reason</span><p>{{ batch.removal_reason }}</p></div><dl class="archive-facts"><div><dt>Originally received</dt><dd>{{ batch.quantity_received|number }} packs</dd></div><div><dt>Expiry date</dt><dd>{{ batch.expiry_date|nice_date }}</dd></div><div><dt>Source</dt><dd>{{ batch.source_type.replace('_',' ')|title }}</dd></div></dl></div>
+        <footer class="archive-record-footer"><div><span><i data-lucide="user-round" aria-hidden="true"></i>{{ batch.removed_by }}</span><span><i data-lucide="clock-3" aria-hidden="true"></i>{{ batch.removed_at|nice_date }}</span></div><a href="/portal/inventory/product-details?product_id={{ batch.item_id }}#product-movements">View stock history<i data-lucide="arrow-up-right" aria-hidden="true"></i></a></footer>
+      </article>
+    {% else %}
+      <div class="archive-empty"><div class="archive-empty-illustration" aria-hidden="true"><span class="archive-paper"><i data-lucide="list-minus"></i></span><span class="archive-box"><i data-lucide="archive"></i></span><span class="archive-check"><i data-lucide="check"></i></span></div><span class="eyebrow">{{ 'No matching records' if archive.q else 'Archive is clear' }}</span><h3>{{ 'No removed batches match your search' if archive.q else 'No removed batches' }}</h3><p>{{ 'Try another batch code, product, account, or removal reason.' if archive.q else 'When a batch is removed, its reason, quantity, account, and date will be kept here.' }}</p><a class="button subtle" href="{{ '/portal/inventory/removed-batches' if archive.q else '/portal/inventory/batches' }}">{{ 'Clear search' if archive.q else 'View active batches' }}<i data-lucide="arrow-right" aria-hidden="true"></i></a></div>
+    {% endfor %}
+    </div>
+    <footer class="archive-ledger-footer"><span><i data-lucide="shield-check" aria-hidden="true"></i>Archived records do not contribute to available stock.</span>{% if archive.pagination.total %}<nav class="archive-pagination" aria-label="Removed batch pages">{% if archive.pagination.has_prev %}<a class="button subtle" href="{{ request.url.include_query_params(page=archive.pagination.page - 1) }}" aria-label="Previous page"><i data-lucide="chevron-left" aria-hidden="true"></i></a>{% endif %}<span>Page {{ archive.pagination.page }} of {{ archive.pagination.total_pages }}</span>{% if archive.pagination.has_next %}<a class="button subtle" href="{{ request.url.include_query_params(page=archive.pagination.page + 1) }}" aria-label="Next page"><i data-lucide="chevron-right" aria-hidden="true"></i></a>{% endif %}</nav>{% endif %}</footer>
+  </section>
+</section>

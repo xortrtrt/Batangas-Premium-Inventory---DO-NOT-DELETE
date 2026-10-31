@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import date
 from decimal import Decimal
+from uuid import UUID
 
 from app import inventory_measurements as measurements
 from app.business_time import business_now, business_today
@@ -132,7 +133,7 @@ def update_product_recipe(
     with get_transaction_cursor() as cur:
         cur.execute("""
             SELECT item_id FROM inventory_items
-            WHERE item_id=%s AND item_type='finished_product' AND is_active=true
+            WHERE item_id=%s AND item_type='finished_product' AND category IS DISTINCT FROM 'Package' AND is_active=true
             FOR UPDATE;
         """, (product_id,))
         if cur.fetchone() is None:
@@ -183,7 +184,7 @@ def produce_product(
             SELECT item_id AS product_id, name, unit
             FROM inventory_items
             WHERE item_id = %s
-              AND item_type = 'finished_product'
+              AND item_type = 'finished_product' AND category IS DISTINCT FROM 'Package'
               AND is_active = true
             FOR UPDATE;
         """, (product_id,))
@@ -307,6 +308,9 @@ def add_product_batch(
     expiry_date: date,
     source_type: str = "direct_received",
     actor_account_id: int | None = None,
+    *,
+    opening_note: str | None = None,
+    opening_reference: str | None = None,
 ) -> dict:
     from ..settings import business_setting
 
@@ -314,16 +318,47 @@ def add_product_batch(
     critical_expiry_days = int(business_setting("inventory.critical_expiry_days"))
     clean_quantity = measurements.parse_whole_packs(quantity)
     clean_batch_code = normalize_inventory_text(batch_code, "Batch code").upper()
-    if source_type != "direct_received":
-        raise ValueError("Direct batch registration must use the direct_received source type.")
+    if source_type not in {"direct_received", "opening_balance"}:
+        raise ValueError("Batch registration must use direct_received or opening_balance.")
+    is_opening = source_type == "opening_balance"
+    note = (opening_note or "").strip()
+    reference = None
+    if is_opening:
+        if clean_quantity > Decimal("999999999"):
+            raise ValueError("Opening quantity must be 999999999 packs or fewer.")
+        if not actor_account_id:
+            raise ValueError("An account is required to record an opening balance.")
+        if not note or len(note) > 500:
+            raise ValueError("Enter an opening balance note of 1 to 500 characters.")
+        if len(clean_batch_code) > 100:
+            raise ValueError("Batch code must be 100 characters or fewer.")
+        try:
+            reference = str(UUID(opening_reference))
+        except (ValueError, TypeError, AttributeError):
+            raise ValueError("Invalid opening balance reference. Reload the workspace and try again.") from None
+    elif opening_reference is not None or opening_note is not None:
+        raise ValueError("Opening details require the opening_balance source type.")
     if expiry_date < business_today():
         raise ValueError("Expiry date cannot be in the past.")
 
     with get_transaction_cursor() as cur:
+        if is_opening:
+            cur.execute("SELECT pg_advisory_xact_lock(hashtextextended(%s, 0))", (f"opening:{reference}",))
+            cur.execute("""SELECT b.batch_id AS product_batch_id, b.item_id AS product_id,
+                b.batch_code, b.quantity_received, b.expiry_date, m.note, m.actor_account_id
+                FROM inventory_batches b JOIN inventory_movements m ON m.affected_batch_id=b.batch_id
+                AND m.movement_type='opening_balance' WHERE b.opening_reference=%s""", (reference,))
+            existing = cur.fetchone()
+            if existing:
+                if (existing["product_id"] != product_id or existing["batch_code"] != clean_batch_code
+                        or existing["quantity_received"] != clean_quantity or existing["expiry_date"] != expiry_date
+                        or existing["note"] != note or existing["actor_account_id"] != actor_account_id):
+                    raise ValueError("This opening balance reference was already used for different details. Reload the workspace.")
+                return {"product_batch_id": existing["product_batch_id"], "already_recorded": True}
         cur.execute("""
             SELECT item_id AS product_id, name, unit
             FROM inventory_items
-            WHERE item_id = %s AND item_type = 'finished_product' AND is_active = true
+            WHERE item_id = %s AND item_type = 'finished_product' AND category IS DISTINCT FROM 'Package' AND is_active = true
             FOR UPDATE;
         """, (product_id,))
         product = cur.fetchone()
@@ -331,23 +366,26 @@ def add_product_batch(
             raise ValueError("Unknown product")
         actor_name = _inventory_actor_name(cur, actor_account_id)
         cur.execute("""
-            INSERT INTO inventory_batches (item_id, batch_code, source_type, quantity_received, quantity_available, unit, received_date, expiry_date, quality_status)
-            VALUES (%s, %s, 'direct_received', %s, %s, %s, %s, %s, 'approved')
+            INSERT INTO inventory_batches (item_id, batch_code, source_type, quantity_received, quantity_available, unit, received_date, expiry_date, quality_status, opening_reference)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 'approved', %s)
+            ON CONFLICT (batch_code) DO NOTHING
             RETURNING batch_id AS product_batch_id, item_id AS product_id, batch_code, source_type, quantity_received, quantity_available, unit, received_date, expiry_date, quality_status;
-        """, (product_id, clean_batch_code, clean_quantity, clean_quantity, product["unit"], business_today(), expiry_date))
+        """, (product_id, clean_batch_code, source_type, clean_quantity, clean_quantity, product["unit"], business_today(), expiry_date, reference))
         batch = cur.fetchone()
+        if batch is None:
+            raise ValueError("Batch code already exists. Enter a different batch code.")
         _insert_inventory_movement(
             cur,
             item_id=product_id,
             affected_batch_id=batch["product_batch_id"],
-            movement_type="direct_finished_receipt",
+            movement_type="opening_balance" if is_opening else "direct_finished_receipt",
             quantity_delta=clean_quantity,
             unit=product["unit"],
             balance_before=Decimal("0.000"),
             balance_after=clean_quantity,
             actor_account_id=actor_account_id,
             actor_name=actor_name,
-            note=f"Direct receipt batch {clean_batch_code}",
+            note=note if is_opening else f"Direct receipt batch {clean_batch_code}",
         )
 
         days = (expiry_date - business_today()).days
@@ -361,7 +399,9 @@ def add_product_batch(
                 f"{clean_quantity:g} {product['unit']} expires in {days} day(s).",
                 business_now(),
             ))
-        _add_log_cursor(cur, actor_account_id=actor_account_id, action="registered_product_batch", entity_type="inventory_batches", entity_id=batch["product_batch_id"])
+        _add_log_cursor(cur, actor_account_id=actor_account_id,
+                        action="recorded_finished_opening_balance" if is_opening else "registered_product_batch",
+                        entity_type="inventory_batches", entity_id=batch["product_batch_id"])
         if days <= near_expiry_days:
             _create_notification_cursor(
                 cur, recipient_role="team-leader", category="inventory",
@@ -370,4 +410,4 @@ def add_product_batch(
                 target_url="/portal/team-leader/inventory", source_type="inventory_batches",
                 source_id=batch["product_batch_id"], dedupe_key=f"batch-expiry-{batch['product_batch_id']}",
             )
-    return clean_row(batch)
+    return {**clean_row(batch), "already_recorded": False}

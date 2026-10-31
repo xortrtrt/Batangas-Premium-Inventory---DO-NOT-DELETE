@@ -51,12 +51,21 @@ team_leader_nav_by_role = {
 portal_secondary_sections = {
     "inventory": {
         "notifications": ("Notifications", "bell"),
+        "product-details": ("Product details", "package-search"),
+        "package-details": ("Package details", "gift"),
+        "removed-batches": ("Removed batches", "archive"),
     },
     "team-leader": {
         "notifications": ("Notifications", "bell"),
+        "product-details": ("Product details", "package-search"),
+        "package-details": ("Package details", "gift"),
+        "removed-batches": ("Removed batches", "archive"),
     },
     "owner": {
         "notifications": ("Notifications", "bell"),
+        "product-details": ("Product details", "package-search"),
+        "package-details": ("Package details", "gift"),
+        "removed-batches": ("Removed batches", "archive"),
     },
 }
 

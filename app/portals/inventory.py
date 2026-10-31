@@ -4,7 +4,7 @@ from datetime import date
 from typing import Annotated
 from uuid import uuid4
 
-from fastapi import APIRouter, Form, Request
+from fastapi import APIRouter, Form, HTTPException, Request
 from starlette.concurrency import run_in_threadpool
 from app.web import path_with_query
 
@@ -12,6 +12,84 @@ from app import repositories as data
 from app.portals import shared
 
 router = APIRouter()
+
+
+@router.post("/portal/inventory/packages/{package_id}/settings")
+async def package_settings(request: Request, package_id: int):
+    guard = await run_in_threadpool(shared.require_portal_session, request)
+    if guard:
+        return guard
+    form = await request.form()
+    try:
+        await run_in_threadpool(data.save_package_contents, package_id, str(form.get("mode", "")),
+            form.getlist("product_id[]"), form.getlist("packs[]"), int(str(form.get("revision", "0"))),
+            shared.session_account_id(request), str(form.get("confirmed", "")) == "yes")
+    except ValueError as exc:
+        return shared.redirect_to(shared.safe_portal_path("inventory", "package-details", product_id=str(package_id), error=str(exc)))
+    return shared.redirect_to(shared.safe_portal_path("inventory", "package-details", product_id=str(package_id), message="Package settings saved."))
+
+
+@router.post("/portal/inventory/packages/{package_id}/dispatch")
+async def package_dispatch(request: Request, package_id: int):
+    guard = await run_in_threadpool(shared.require_portal_session, request)
+    if guard:
+        return guard
+    form = await request.form()
+    try:
+        result = await run_in_threadpool(data.dispatch_package, package_id, str(form.get("quantity", "")),
+            str(form.get("note", "")), str(form.get("submission_reference", "")),
+            form.getlist("product_id[]"), form.getlist("packs[]"), int(str(form.get("revision", "0"))),
+            shared.session_account_id(request), str(form.get("dispatch_mode", "")))
+    except ValueError as exc:
+        return shared.redirect_to(shared.safe_portal_path("inventory", "package-details", product_id=str(package_id), error=str(exc)))
+    return shared.redirect_to(shared.safe_portal_path("inventory", "package-details", product_id=str(package_id),
+        message="Package dispatch already recorded." if result["already_recorded"] else "Package dispatched. Finished-product stock deducted."))
+
+
+@router.post("/portal/inventory/products/{product_id}/batches/{batch_id}/remove")
+def remove_batch(
+    request: Request, product_id: int, batch_id: int,
+    reason: Annotated[str, Form()], expected_quantity: Annotated[str, Form()],
+    confirmed: Annotated[str, Form()] = "",
+):
+    guard = shared.require_portal_session(request)
+    if guard:
+        return guard
+    try:
+        removed = data.remove_product_batch(product_id, batch_id, reason, confirmed == "yes",
+                                            expected_quantity, shared.session_account_id(request))
+    except ValueError as exc:
+        return shared.redirect_to(shared.safe_portal_path(
+            "inventory", "product-details", product_id=str(product_id), error=str(exc)))
+    return shared.redirect_to(shared.safe_portal_path(
+        "inventory", "product-details", product_id=str(product_id),
+        message="Batch removed. Stock history is preserved." if removed else "Batch was already removed."))
+
+
+@router.post("/portal/inventory/finished-products/opening-balance")
+@router.post("/portal/team-leader/finished-products/opening-balance")
+def finished_opening_balance(
+    request: Request,
+    product_id: Annotated[int, Form()],
+    batch_code: Annotated[str, Form()],
+    quantity: Annotated[str, Form()],
+    expiry_date: Annotated[date, Form()],
+    note: Annotated[str, Form()],
+    submission_reference: Annotated[str, Form()],
+):
+    guard = shared.require_portal_session(request)
+    if guard:
+        return guard
+    try:
+        result = data.add_product_batch(
+            product_id, batch_code, quantity, expiry_date, source_type="opening_balance",
+            actor_account_id=shared.session_account_id(request), opening_note=note,
+            opening_reference=submission_reference,
+        )
+    except ValueError as exc:
+        return shared.redirect_to(shared.safe_portal_path("inventory", "inventory", modal="opening-balance", error=str(exc)))
+    message = "Opening balance already recorded." if result["already_recorded"] else "Finished goods opening balance recorded."
+    return shared.redirect_to(shared.safe_portal_path("inventory", "logs", type="opening", message=message))
 
 
 @router.post("/portal/inventory/raw-materials/{raw_material_id}/remove")
@@ -115,9 +193,15 @@ def logs_page(request: Request, page_size: int = 10, inventory_only: bool = True
 def finished_inventory_products_page(request: Request, page_size: int = 8) -> dict:
     filters = shared.portal_filters(request)
     category = f"finished_product:{filters['type']}" if filters["type"] else "finished_product"
-    items = data.list_inventory_items(q=filters["q"], category=category, page=filters["page"], page_size=page_size, sort=filters["sort"])
-    total = data.count_inventory_items(q=filters["q"], category=category)
-    return shared.paged(items, total, filters["page"], page_size, q=filters["q"], type=filters["type"], sort=filters["sort"])
+    packages_only = filters["type"] == "Package"
+    total = data.count_inventory_items(q=filters["q"], category=category, exclude_packages=not packages_only)
+    page_number = 1 if packages_only else data.pagination_meta(total, filters["page"], page_size)["page"]
+    items = data.list_inventory_items(q=filters["q"], category=category,
+        page=None if packages_only else page_number, page_size=page_size,
+        sort=filters["sort"], exclude_packages=not packages_only)
+    return shared.paged(items, total, page_number, max(total,1) if packages_only else page_size,
+                        q=filters["q"], type=filters["type"], sort=filters["sort"])
+
 
 def raw_materials_inventory_page(request: Request, page_size: int = 10) -> dict:
     filters = shared.portal_filters(request)
@@ -172,16 +256,16 @@ def finished_products_inventory_context(request: Request) -> dict:
         for product in products_page["items"]
         if str(product.get("category") or "").strip().lower() != "package"
     ]
-    product_packages = [
-        product
-        for product in products_page["items"]
-        if str(product.get("category") or "").strip().lower() == "package"
+    product_packages = data.list_inventory_items(q=products_page["filters"]["q"],
+        category="finished_product:Package", sort=products_page["filters"]["sort"]) if not products_page["filters"]["type"] else [
+        product for product in products_page["items"] if product.get("category") == "Package"
     ]
     return {
         "inventory_items_page": products_page,
         "inventory_products_page": products_page,
         "finished_products": finished_products,
         "finished_product_packages": product_packages,
+        "catalog_total": products_page["pagination"]["total"] + (len(product_packages) if not products_page["filters"]["type"] else 0),
         "inventory_item_tabs": [
             {"label": "All products", "value": ""},
             *[
@@ -230,7 +314,7 @@ def dashboard_context(request: Request) -> dict:
     return {
         "team_leader_role": "inventory",
         "metrics": data.current_metrics(),
-        "products": data.list_products(),
+        "products": data.list_products(include_packages=False),
         "movement_analytics": data.inventory_product_movement_analytics(days=30, limit=8),
     }
 
@@ -238,9 +322,10 @@ def inventory_context(request: Request) -> dict:
     recipe_products_page = shared.product_page(request, page_size=8)
     recipe_product_ids = [product["product_id"] for product in recipe_products_page["items"]]
     return {
+        "opening_reference": str(uuid4()),
         "dispatch_reference": str(uuid4()),
         "raw_deduction_reference": str(uuid4()),
-        "products": data.list_products(),
+        "products": data.list_products(include_packages=False),
         "recipe_products_page": recipe_products_page,
         "recipe_products": recipe_products_page["items"],
         "raw_materials": data.list_raw_materials(),
@@ -278,12 +363,59 @@ def logs_context(request: Request) -> dict:
         ),
     }
 
+def product_details_context(request: Request) -> dict:
+    try:
+        product_id = int(request.query_params.get("product_id", ""))
+    except ValueError:
+        raise HTTPException(status_code=404) from None
+    details = data.product_stock_details(
+        product_id,
+        batch_page=shared.positive_int(request.query_params.get("batch_page"), maximum=1000000),
+        movement_page=shared.positive_int(request.query_params.get("movement_page"), maximum=1000000),
+    )
+    if details is None:
+        raise HTTPException(status_code=404)
+    if details["product"].get("category") == "Package":
+        return {**package_details_context(request), "is_package_page": True}
+    return details
+
+
+def package_details_context(request: Request) -> dict:
+    try:
+        product_id = int(request.query_params.get("product_id", ""))
+    except ValueError:
+        raise HTTPException(404) from None
+    context = data.package_workspace(product_id)
+    if context is None:
+        raise HTTPException(404)
+    return {**context, "package_dispatch_reference": str(uuid4())}
+
+
+def removed_batches_context(request: Request) -> dict:
+    raw_product = request.query_params.get("product_id", "")
+    try:
+        product_id = int(raw_product) if raw_product else None
+    except ValueError:
+        raise HTTPException(status_code=404) from None
+    page = data.removed_batches_page(
+        q=request.query_params.get("q", ""),
+        page=shared.positive_int(request.query_params.get("page"), maximum=1000000),
+        product_id=product_id,
+    )
+    if page is None:
+        raise HTTPException(status_code=404)
+    return {"removed_batches": page}
+
+
 # Register loaders for both inventory and team-leader / owner roles
 for role in ("inventory", "team-leader", "owner"):
     shared.PORTAL_SECTION_LOADERS[(role, "dashboard")] = dashboard_context
     shared.PORTAL_SECTION_LOADERS[(role, "inventory")] = inventory_context
     shared.PORTAL_SECTION_LOADERS[(role, "raw-materials")] = raw_materials_inventory_context
     shared.PORTAL_SECTION_LOADERS[(role, "finished-products")] = finished_products_inventory_context
+    shared.PORTAL_SECTION_LOADERS[(role, "product-details")] = product_details_context
+    shared.PORTAL_SECTION_LOADERS[(role, "package-details")] = package_details_context
+    shared.PORTAL_SECTION_LOADERS[(role, "removed-batches")] = removed_batches_context
     shared.PORTAL_SECTION_LOADERS[(role, "batches")] = batches_context
     shared.PORTAL_SECTION_LOADERS[(role, "logs")] = logs_context
     shared.PORTAL_SECTION_LOADERS[(role, "profile")] = profile_context
@@ -295,35 +427,9 @@ async def inventory_products_partial(request: Request):
     guard = shared.require_portal_session(request)
     if guard:
         return guard
-    products_page = finished_inventory_products_page(request)
-    finished_products = [
-        product
-        for product in products_page["items"]
-        if str(product.get("category") or "").strip().lower() != "package"
-    ]
-    product_packages = [
-        product
-        for product in products_page["items"]
-        if str(product.get("category") or "").strip().lower() == "package"
-    ]
     return shared.templates().TemplateResponse(
-        request,
-        "portals/inventory/_inventory_products.html",
-        {
-            "request": request,
-            "inventory_items_page": products_page,
-            "inventory_products_page": products_page,
-            "finished_products": finished_products,
-            "finished_product_packages": product_packages,
-            "inventory_item_tabs": [
-                {"label": "All products", "value": ""},
-                *[
-                    {"label": category, "value": category}
-                    for category in data.product_categories
-                ],
-                {"label": "Packages", "value": "Package"},
-            ],
-        },
+        request, "portals/inventory/_inventory_products.html",
+        {"request": request, **finished_products_inventory_context(request)},
     )
 
 @router.post("/portal/inventory/inventory-items")

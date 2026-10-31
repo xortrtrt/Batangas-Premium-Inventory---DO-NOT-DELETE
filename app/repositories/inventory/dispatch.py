@@ -31,7 +31,7 @@ def dispatch_stock(product_id: int, quantity: object, note: str, submission_refe
             return {"dispatch_id": reference, "already_recorded": True}
 
         cur.execute("""SELECT item_id, name, unit FROM inventory_items
-            WHERE item_id = %s AND item_type = 'finished_product' AND is_active = true FOR UPDATE""", (product_id,))
+            WHERE item_id = %s AND item_type = 'finished_product' AND category IS DISTINCT FROM 'Package' AND is_active = true FOR UPDATE""", (product_id,))
         product = cur.fetchone()
         if not product:
             raise ValueError("Choose an active finished product.")

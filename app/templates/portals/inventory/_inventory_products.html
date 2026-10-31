@@ -12,13 +12,17 @@
   </div>
   <div class="inventory-product-card-copy">
     <span class="reseller-product-category">{{ product.category }}</span>
-    <h3>{{ product.name }}</h3>
+    <h3><a class="inventory-product-detail-link" href="/portal/inventory/{{ 'package-details' if is_package else 'product-details' }}?product_id={{ product.item_id }}">{{ product.name }} <span aria-hidden="true">&rarr;</span></a></h3>
     <div class="inventory-product-stats">
       <div class="inventory-product-stat">
-        <span><i data-lucide="boxes"></i> Available stock</span>
-        <strong>{{ product.available|number }} <small>{{ product.unit }}</small></strong>
+        <span><i data-lucide="{{ 'gift' if is_package else 'boxes' }}"></i>{{ 'Dispatch options' if is_package else 'Available stock' }}</span>
+        <strong>{% if is_package %}Standard / Custom{% else %}{{ product.available|number }} <small>{{ product.unit }}</small>{% endif %}</strong>
       </div>
     </div>
+    {% if not is_package %}<div class="inventory-product-content">
+      <i data-lucide="{{ 'package-open' if is_package else 'scale' }}" aria-hidden="true"></i>
+      <span><small>{{ 'Package contents' if is_package else 'Inventory tracking' }}</small><strong>{{ 'Finished-product packs' if is_package else 'Whole packs' }}</strong></span>
+    </div>{% endif %}
   </div>
 </article>
 {%- endmacro %}
@@ -26,7 +30,7 @@
 <section class="inventory-separated-section" data-inventory-products-region>
   <div class="panel-heading">
     <h3>Product catalog</h3>
-    <span class="inventory-product-count"><i data-lucide="package-check"></i> {{ inventory_products_page.pagination.total }} product{{ '' if inventory_products_page.pagination.total == 1 else 's' }}</span>
+    <span class="inventory-product-count"><i data-lucide="package-check"></i> {{ catalog_total|default(inventory_products_page.pagination.total) }} {{ 'package' if inventory_products_page.filters.type == 'Package' else 'item' }}{{ '' if inventory_products_page.pagination.total == 1 else 's' }}</span>
   </div>
   <nav class="portal-category-tabs" aria-label="Finished product categories">
     {% for tab in inventory_item_tabs %}
@@ -45,8 +49,8 @@
     <header class="inventory-product-group-heading">
       <span class="inventory-product-group-icon"><i data-lucide="package-open"></i></span>
       <div>
-        <h4 id="standard-products-title">Finished stock</h4>
-        <p>Product packs and bundles tracked in inventory.</p>
+        <h4 id="standard-products-title">Individual products</h4>
+        <p>Finished goods tracked as regular product packs.</p>
       </div>
       <span class="inventory-product-group-count">{{ finished_products|length }}</span>
     </header>
@@ -64,7 +68,7 @@
       <span class="inventory-product-group-icon"><i data-lucide="gift"></i></span>
       <div>
         <h4 id="package-products-title">Packages</h4>
-        <p>Packaged bundles tracked as finished stock.</p>
+        <p>Bundles of finished-product packs, with standard or customized contents.</p>
       </div>
       <span class="inventory-product-group-count">{{ finished_product_packages|length }}</span>
     </header>
@@ -84,6 +88,7 @@
   </div>
   {% endif %}
 
+  {% if inventory_products_page.filters.type != 'Package' and inventory_products_page.pagination.total_pages > 1 %}
   <div class="pagination" data-inventory-products-pagination>
     {% if inventory_products_page.pagination.has_prev %}
     <a
@@ -101,4 +106,5 @@
     >Next</a>
     {% endif %}
   </div>
+  {% endif %}
 </section>

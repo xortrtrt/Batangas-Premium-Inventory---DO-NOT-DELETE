@@ -119,7 +119,7 @@ def current_metrics() -> dict:
                 SELECT SUM(ib.quantity_available)
                 FROM inventory_batches ib
                 JOIN inventory_items ii ON ii.item_id = ib.item_id
-                WHERE ii.item_type = 'finished_product'
+                WHERE ii.item_type = 'finished_product' AND ii.category IS DISTINCT FROM 'Package'
                   AND ib.quality_status = 'approved'
                   AND (ib.expiry_date IS NULL OR ib.expiry_date >= CURRENT_DATE)
             ), 0) AS total_available;

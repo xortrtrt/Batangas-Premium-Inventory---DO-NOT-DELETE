@@ -20,8 +20,11 @@
     />
     <link
       rel="stylesheet"
-      href="{{ url_for('static', path='css/portals/' ~ (portal_css_key|default(role_key)) ~ '.css') }}?v=20261030-material-layout-2"
+      href="{{ url_for('static', path='css/portals/' ~ (portal_css_key|default(role_key)) ~ '.css') }}?v=20261031-package-logs-1"
     />
+    {% if section in ['finished-products', 'product-details', 'package-details', 'removed-batches'] %}
+    <link rel="stylesheet" href="{{ url_for('static', path='css/product_details.css') }}?v=20261031-reference-10" />
+    {% endif %}
   </head>
   <body class="portal-body {{ portal_body_roles|default('role-' ~ role_key) }} section-{{ section }}{% if role_key in ['team-leader'] %} leader-role-{{ role.team_leader_role }}{% endif %}">
     <button
@@ -62,7 +65,7 @@
         <span class="portal-nav-group-label">{{ group.label }}</span>
         {% for slug, label, icon in group["items"] %}
         <a
-          class="{{ 'active' if section == slug else '' }}"
+          class="{{ 'active' if section == slug or (section in ['product-details','package-details'] and slug == 'finished-products') or (section == 'removed-batches' and slug == 'batches') else '' }}"
           href="/portal/{{ role_key }}/{{ slug }}"
         >
           <i data-lucide="{{ icon }}"></i>
@@ -73,7 +76,7 @@
         {% else %}
         {% for slug, label, icon in nav %}
         <a
-          class="{{ 'active' if section == slug else '' }}"
+          class="{{ 'active' if section == slug or (section in ['product-details','package-details'] and slug == 'finished-products') or (section == 'removed-batches' and slug == 'batches') else '' }}"
           href="/portal/{{ role_key }}/{{ slug }}"
         >
           <i data-lucide="{{ icon }}"></i>
@@ -262,5 +265,6 @@
     <script type="module" src="{{ url_for('static', path='js/portal.js') }}?v=20261030-material-layout-2"></script>
     <script type="module" src="{{ url_for('static', path='js/profile.js') }}?v=20261001-frontend-modules-1"></script>
     <script type="module" src="{{ url_for('static', path='js/charts.js') }}?v=20261020-inventory-dispatch"></script>
+    {% if section == 'package-details' or is_package_page|default(false) %}<script src="{{ url_for('static', path='js/package_setup.js') }}?v=20261031-dispatch-choices-2" defer></script>{% endif %}
   </body>
 </html>

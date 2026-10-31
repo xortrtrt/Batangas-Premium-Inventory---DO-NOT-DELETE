@@ -1,0 +1,73 @@
+{% from 'portals/inventory/_stock_components.html' import metric, section_heading, empty_state %}
+{% macro history_pagination(pagination, parameter, anchor, label) %}
+{% if pagination.total %}
+<nav class="lifecycle-pagination" aria-label="{{ label|capitalize }} pages">
+  <div class="lifecycle-pagination-summary"><span>Showing {{ (pagination.page - 1) * pagination.page_size + 1 }}–{{ [pagination.page * pagination.page_size, pagination.total]|min }} of {{ pagination.total }} {{ label }}</span><small>Page {{ pagination.page }} of {{ pagination.total_pages }}</small></div>
+  <div class="lifecycle-pagination-controls">
+    {% if pagination.has_prev %}<a class="lifecycle-page-step" href="{{ request.url.include_query_params(**{parameter: pagination.page - 1}) }}#{{ anchor }}" aria-label="Previous {{ label }} page"><i data-lucide="chevron-left" aria-hidden="true"></i>Previous</a>{% else %}<span class="lifecycle-page-step" aria-disabled="true">Previous</span>{% endif %}
+    {% for n in range([1,pagination.page - 2]|max, [pagination.total_pages,pagination.page + 2]|min + 1) %}<a class="lifecycle-page-number" href="{{ request.url.include_query_params(**{parameter:n}) }}#{{ anchor }}" aria-label="{{ label|capitalize }} page {{ n }}"{% if n == pagination.page %} aria-current="page"{% endif %}>{{ n }}</a>{% endfor %}
+    {% if pagination.has_next %}<a class="lifecycle-page-step" href="{{ request.url.include_query_params(**{parameter: pagination.page + 1}) }}#{{ anchor }}" aria-label="Next {{ label }} page">Next<i data-lucide="chevron-right" aria-hidden="true"></i></a>{% else %}<span class="lifecycle-page-step" aria-disabled="true">Next</span>{% endif %}
+  </div>
+</nav>
+{% endif %}
+{% endmacro %}
+
+<section class="panel lifecycle-workspace lifecycle-product-page">
+  <header class="lifecycle-hero lifecycle-product-hero">
+    <div class="lifecycle-product-identity">
+      <div class="lifecycle-product-photo"><img src="{{ product.name|product_image|media_url }}" alt="{{ product.name }}" width="128" height="128"></div>
+      <div><span class="eyebrow">Finished product / {{ product.category }}</span><h2>{{ product.name }}</h2>
+        <div class="lifecycle-product-meta"><span><i data-lucide="package" aria-hidden="true"></i>Stock counted in whole packs</span></div>
+        <span class="status-badge lifecycle-status" data-state="{{ 'approved' if product.is_active else 'rejected' }}">{{ 'Active product' if product.is_active else 'Inactive product' }}</span>
+      </div>
+    </div>
+    <a class="button subtle lifecycle-back" href="/portal/inventory/finished-products"><i data-lucide="arrow-left" aria-hidden="true"></i>Back to Finished Products</a>
+  </header>
+  <section class="lifecycle-stock-overview" aria-label="Stock overview">
+    <div class="lifecycle-metrics">
+      {{ metric('Available stock',totals.available_stock,'package-check',featured=true) }}
+      {{ metric('Warehouse stock',totals.physical_stock,'warehouse') }}
+      {{ metric('Batches',totals.batch_count,'layers',unit='batches') }}
+      {{ metric('Near expiry',totals.near_expiry_stock|default(0),'calendar-clock',tone='warning') }}
+    </div>
+    <div class="lifecycle-stock-footnote"><span><i data-lucide="circle-check" aria-hidden="true"></i><strong>{{ totals.available_stock|number }}</strong> eligible stock</span><span><i data-lucide="circle-alert" aria-hidden="true"></i><strong>{{ totals.expired_stock|default(0)|number }}</strong> expired in warehouse</span></div>
+  </section>
+  <section class="lifecycle-surface" id="product-batches">
+    <nav class="removed-batch-shortcut" aria-label="Product batch views"><a class="button subtle" href="/portal/inventory/removed-batches?product_id={{ product.item_id }}"><i data-lucide="archive" aria-hidden="true"></i>Removed batches</a></nav>
+    {{ section_heading('layers','Batches and expiration','Track each receipt, its remaining stock, and its expiration date.',batch_pagination.total) }}
+    <div class="lifecycle-batch-list">
+    {% for batch in batches %}
+      {% set batch_state = 'expired' if batch.is_expired else batch.quality_status if batch.quality_status != 'approved' else 'near_expiry' if batch.days_left is not none and batch.days_left <= near_expiry_days else 'approved' %}
+      <article class="lifecycle-batch-card" data-state="{{ batch_state }}">
+        <div class="lifecycle-batch-top"><div><span class="lifecycle-mini-label">Batch reference</span><strong>{{ batch.batch_code }}</strong></div><span class="status-badge lifecycle-status" data-state="{{ batch_state }}">{{ 'Expired' if batch.is_expired else 'Expires today' if batch.days_left == 0 and batch.quality_status == 'approved' else 'Expires in ' ~ batch.days_left ~ ' days' if batch_state == 'near_expiry' else batch.quality_status|title }}</span></div>
+        <div class="lifecycle-batch-body">
+          <div class="lifecycle-date-track"><div><i data-lucide="package-plus" aria-hidden="true"></i><span><small>Received</small><time>{{ batch.received_date|nice_date }}</time></span></div><span class="lifecycle-date-line" aria-hidden="true"></span><div><i data-lucide="calendar-clock" aria-hidden="true"></i><span><small>Expiration</small><time>{{ batch.expiry_date|nice_date }}</time></span></div></div>
+          <div class="lifecycle-batch-stock"><strong>{{ batch.quantity_available|stock_quantity }} <small>/ {{ batch.quantity_received|stock_quantity }} packs</small></strong><progress value="{{ batch.quantity_available }}" max="{{ batch.quantity_received if batch.quantity_received else 1 }}" aria-label="Remaining stock for batch {{ batch.batch_code }}"></progress><small>{{ batch.source_type.replace('_',' ')|title }}</small></div>
+        </div>
+        <details class="batch-removal">
+          <summary><i data-lucide="trash-2" aria-hidden="true"></i>Remove batch<span class="sr-only"> {{ batch.batch_code }}</span><i class="batch-removal-chevron" data-lucide="chevron-down" aria-hidden="true"></i></summary>
+          <form method="post" action="/portal/inventory/products/{{ product.item_id }}/batches/{{ batch.batch_id }}/remove">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+            <input type="hidden" name="expected_quantity" value="{{ batch.quantity_available }}">
+            <div class="batch-removal-notice"><span class="batch-removal-notice-icon"><i data-lucide="package-minus" aria-hidden="true"></i></span><div><h4>Remove this batch?</h4><p><strong>{{ batch.batch_code }}</strong> &middot; <strong>{{ batch.quantity_available|number }} packs</strong> will leave inventory.</p><small>Stock history is retained. Production ingredients are not restored.</small></div></div>
+            <div class="batch-removal-field"><label for="batch-removal-reason-{{ batch.batch_id }}">Removal reason <span>Required</span></label>
+            <textarea id="batch-removal-reason-{{ batch.batch_id }}" name="reason" required maxlength="500" rows="3" placeholder="Explain why this batch is being removed."></textarea><small>For example, damaged packaging or an incorrect stock entry.</small></div>
+            <label class="batch-removal-confirm"><input type="checkbox" name="confirmed" value="yes" required><span>I confirm removal of this batch and its remaining stock.</span></label>
+            <footer class="batch-removal-actions"><button class="button batch-removal-submit" type="submit"><i data-lucide="trash-2" aria-hidden="true"></i>Confirm removal</button></footer>
+          </form>
+        </details>
+      </article>
+    {% else %}{{ empty_state('layers','No batches recorded','Receive a finished-product batch to begin tracking stock and expiration.') }}{% endfor %}
+    </div>
+    {{ history_pagination(batch_pagination,'batch_page','product-batches','batches') }}
+  </section>
+  <section class="lifecycle-surface" id="product-movements">
+    {{ section_heading('arrow-left-right','Warehouse movement history','Receipts, production, dispatches, and stock adjustments. Balances apply to each batch.',movement_pagination.total) }}
+    <div class="lifecycle-movement-list">
+    {% for movement in movements %}
+      <article class="lifecycle-movement-row"><span class="lifecycle-movement-icon" data-direction="{{ 'out' if movement.quantity_delta < 0 else 'in' }}"><i data-lucide="{{ 'arrow-up-right' if movement.quantity_delta < 0 else 'arrow-down-left' }}" aria-hidden="true"></i></span><div class="lifecycle-movement-copy"><strong>{{ movement.movement_type.replace('_',' ')|title }}</strong><p>{{ movement.note or 'Warehouse balance updated.' }}</p><small>{{ movement.actor_name }} &middot; {{ movement.created_at|nice_date }}{% if movement.batch_code %} &middot; {{ movement.batch_code }}{% endif %}</small>{% if movement.dispatch_id %}<small class="stock-dispatch-reference">Dispatch {{ movement.dispatch_id }}</small>{% endif %}</div><div class="lifecycle-movement-amount"><strong>{{ '+' if movement.quantity_delta > 0 else '' }}{{ movement.quantity_delta|stock_quantity }} <small>{{ movement.unit }}</small></strong><span>{{ movement.balance_before|stock_quantity }} &rarr; {{ movement.balance_after|stock_quantity }}</span></div></article>
+    {% else %}{{ empty_state('arrow-left-right','No stock movements recorded','Warehouse activity will appear here when stock is received or released.') }}{% endfor %}
+    </div>
+    {{ history_pagination(movement_pagination,'movement_page','product-movements','movements') }}
+  </section>
+</section>

@@ -21,14 +21,20 @@ CLEAR_TABLES = (
     "accounts", "activity_logs", "alerts", "business_settings", "inventory_batches",
     "inventory_dispatches", "inventory_movements", "notification_recipients", "notifications",
     "product_recipes", "security_events", "user_consents", "web_sessions",
+    "inventory_package_dispatch_details", "inventory_package_dispatch_lines",
 )
-KNOWN_TABLES = {*CLEAR_TABLES, "inventory_items", "inventory_schema_migrations"}
+KNOWN_TABLES = {*CLEAR_TABLES, "inventory_items", "inventory_schema_migrations",
+                "inventory_package_settings", "inventory_package_components"}
 LEGACY_TOKEN_TABLES = {"account_password_otps", "account_activation_tokens"}
 HISTORY_TRIGGERS = (
     ("inventory_movements", "inventory_movements_immutable"),
     ("inventory_movements", "inventory_movements_no_truncate"),
     ("inventory_dispatches", "inventory_dispatches_immutable"),
     ("inventory_dispatches", "inventory_dispatches_no_truncate"),
+    ("inventory_package_dispatch_details", "package_dispatch_details_immutable"),
+    ("inventory_package_dispatch_details", "package_dispatch_details_no_truncate"),
+    ("inventory_package_dispatch_lines", "package_dispatch_lines_immutable"),
+    ("inventory_package_dispatch_lines", "package_dispatch_lines_no_truncate"),
 )
 
 

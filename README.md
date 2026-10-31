@@ -10,6 +10,7 @@ Render service and Neon PostgreSQL database.
 - Finished-product catalog and recipes; stock counted in packs
 - Production with automatic ingredient deductions
 - Finished-product receipts, batches, and expiry tracking
+- Finished-goods opening balances by batch, with expiry, a required note, and account tracking
 - Manual stock dispatch using earliest-expiring eligible batches
 - Immutable inventory movement history, dashboard, and inventory notifications
 - Account attribution on every stock movement, with account-name search and sorting
@@ -18,7 +19,36 @@ Render service and Neon PostgreSQL database.
 Sales, reseller management, orders, payments, forecasting, chat, and email
 integrations are not included. Dispatch does not create orders or sales records.
 
+Use **Add opening balance** in the Inventory Workspace or Finished Products to
+record existing finished goods in positive whole packs. Enter a separate batch
+code and expiry date for each batch. This adds to existing stock without consuming
+recipe materials; it never replaces a balance. Entries appear under **Opening**
+in movement history and participate in the normal expiry and dispatch workflow.
+Duplicate submissions are recorded once using a unique database reference.
+
 ## Run
+
+Finished Products: select a product name to open its read-only stock details.
+The page shows available and physical batch stock, all batches with expiry and
+quality status, and product-specific movements with batch balances, account,
+timestamp, notes, and dispatch references. Batch and movement histories paginate
+independently; Back to Finished Products returns to the catalog.
+The catalog and product details follow the MEATTRACK reference's card layout,
+photo header, stock summary tiles, batch progress cards, and movement timeline.
+Standalone stock metrics show available packs, warehouse packs, batch count,
+near-expiry packs, and expired warehouse packs using the existing expiry rules.
+
+Product details → Remove batch opens a reason and confirmation form. Confirming
+archives that batch and removes its remaining packs through a recorded stock
+correction. Original batches and movement history remain stored; production
+ingredients are not restored. Empty batches can also be archived. Removal is
+account-attributed, rejects stale stock quantities, and cannot deduct twice.
+Migration `006_batch_removal.sql` adds archival metadata without deleting records.
+Product Batches → Removed batches lists archived batches with the product,
+packs deducted at removal, original receipt quantity, expiry, reason, account,
+and removal timestamp. Product details also links to that product's removed
+batches. Search and pagination retain the product filter; stock history remains
+accessible. This view does not restore stock.
 
 Use Python 3.11 and the pinned runtime dependencies:
 
@@ -46,6 +76,34 @@ python tools/import_inventory_catalog.py catalog/meattrack-20261017-v1.json --ap
 The first command is a read-only preview. The second adds missing definitions,
 blocks conflicts, preserves existing records and balances, and creates no source
 stock, accounts, or sales. See [catalog details](catalog/README.md).
+
+## Finished-goods packages
+
+Area Distributor's Package, Resellers Package, and Trial Package appear under
+Packages, separately from individual finished products. They contain finished
+packs rather than raw ingredients and do not own manufactured stock.
+
+Save and lock the **Standard** contents once. Saved products and pack quantities
+cannot be edited; the application and database both enforce the lock. At each
+dispatch choose **Standard** to use that fixed list, or **Customize** to create
+one-time contents starting from zero. A customized dispatch never changes the
+standard and is not saved as a reusable combination. Dispatching customized
+contents does not require a standard to have been configured.
+
+Package dispatch multiplies packs per package by the number of packages and
+deducts all components atomically from approved, unexpired batches in earliest
+expiry order. Insufficient components reject the entire dispatch. Records retain
+the dispatch type and actual product/quantity snapshot.
+Inventory Logs show each package dispatch once under its recorded package name,
+with an expandable list of finished goods, packs per package, and total packs
+dispatched. Search includes the recorded component names; counts and pagination
+treat the package as one event. Individual stock deductions remain in the ledger
+for product history and stock accountability.
+Packages are excluded from raw-material recipes, production, individual stock
+receipts/opening balances, and individual-pack dispatch. Migration 007 classifies
+the three existing items while retaining their IDs and historical records.
+Migration 008 locks existing saved standards. The three package cards are shown
+together without package pagination; individual products retain pagination.
 
 ## Tests
 

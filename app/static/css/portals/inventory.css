@@ -1019,6 +1019,42 @@
   transition: background-color 180ms ease;
 }
 
+.role-team-leader .package-log-contents {
+  grid-column: 1 / -1;
+  min-width: 0;
+  border: 1px solid var(--ledger-line);
+  border-radius: 12px;
+  background: var(--ledger-wash);
+}
+
+.role-team-leader .package-log-contents summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 44px;
+  padding: 10px 16px;
+  color: var(--ledger-ink);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  list-style: none;
+}
+
+.role-team-leader .package-log-contents summary::-webkit-details-marker { display: none; }
+.role-team-leader .package-log-contents summary:focus-visible { outline: 2px solid var(--ledger-gold); outline-offset: 3px; }
+.role-team-leader .package-log-contents summary svg { width: 18px; height: 18px; }
+.role-team-leader .package-log-contents__close,
+.role-team-leader .package-log-contents[open] summary > span:first-child { display: none; }
+.role-team-leader .package-log-contents[open] .package-log-contents__close { display: inline; }
+.role-team-leader .package-log-contents[open] summary svg { transform: rotate(180deg); }
+.role-team-leader .package-log-contents__body { padding: 0 16px 16px; }
+.role-team-leader .package-log-contents__body p { margin: 0 0 12px; color: var(--ledger-muted); font-size: 0.8rem; }
+.role-team-leader .package-log-contents table { width: 100%; background: var(--ledger-surface); }
+.role-team-leader .package-log-contents th,
+.role-team-leader .package-log-contents td { padding: 12px; text-align: left; }
+.role-team-leader .package-log-contents th:not(:first-child),
+.role-team-leader .package-log-contents td:not(:first-child) { text-align: right; }
+
 .role-team-leader .movement-row::before {
   position: absolute;
   inset: 18px auto 18px 0;

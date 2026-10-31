@@ -2,6 +2,10 @@
 
 from .movements import _insert_inventory_movement, _inventory_actor_name
 from .dispatch import dispatch_stock
+from .details import product_stock_details
+from .batch_removal import remove_product_batch
+from .removed_batches import removed_batches_page
+from .packages import package_workspace, save_package_contents, dispatch_package
 from .products import (
     add_product_batch,
     create_product_with_recipe,
@@ -25,6 +29,12 @@ from .queries import (
 from .raw_materials import add_raw_inventory_item, add_raw_inventory_quantity, deduct_raw_material, remove_raw_material, reactivate_raw_material
 
 __all__ = [
+    "product_stock_details",
+    "remove_product_batch",
+    "removed_batches_page",
+    "package_workspace",
+    "save_package_contents",
+    "dispatch_package",
     "deduct_raw_material",
     "remove_raw_material",
     "reactivate_raw_material",

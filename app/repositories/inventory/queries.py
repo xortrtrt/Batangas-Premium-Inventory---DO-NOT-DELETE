@@ -32,9 +32,11 @@ def inventory_item_filter(category: str) -> tuple[str, str]:
     return "", raw.replace("_", " ")
 
 
-def list_inventory_items(q: str = "", category: str = "", page: int | None = None, page_size: int = 10, sort: str = "", raw_material_active: bool = True) -> list[dict]:
+def list_inventory_items(q: str = "", category: str = "", page: int | None = None, page_size: int = 10, sort: str = "", raw_material_active: bool = True, exclude_packages: bool = False) -> list[dict]:
     where = ["ii.item_type IN ('raw_material', 'finished_product')", "(ii.item_type <> 'raw_material' OR ii.is_active = %s)"]
     params: list[object] = [raw_material_active]
+    if exclude_packages:
+        where.append("ii.category IS DISTINCT FROM 'Package'")
     q = q.strip()
     item_type, item_category = inventory_item_filter(category)
     if q:
@@ -59,6 +61,7 @@ def list_inventory_items(q: str = "", category: str = "", page: int | None = Non
                    WHEN 'finished_product' THEN 'Finished product'
                END AS item_type_label,
                ii.category, ii.name, ii.unit,
+               (SELECT s.mode FROM inventory_package_settings s WHERE s.package_item_id=ii.item_id) package_mode,
                ii.is_active,
                CASE
                    WHEN ii.item_type = 'raw_material' THEN ii.quantity_available
@@ -77,9 +80,11 @@ def list_inventory_items(q: str = "", category: str = "", page: int | None = Non
     """.format(where_sql=" AND ".join(where), order_sql=order_sql, paging_sql=paging_sql), tuple(params) or None))
 
 
-def count_inventory_items(q: str = "", category: str = "", raw_material_active: bool = True) -> int:
+def count_inventory_items(q: str = "", category: str = "", raw_material_active: bool = True, exclude_packages: bool = False) -> int:
     where = ["ii.item_type IN ('raw_material', 'finished_product')", "(ii.item_type <> 'raw_material' OR ii.is_active = %s)"]
     params: list[object] = [raw_material_active]
+    if exclude_packages:
+        where.append("ii.category IS DISTINCT FROM 'Package'")
     q = q.strip()
     item_type, item_category = inventory_item_filter(category)
     if q:
@@ -101,7 +106,7 @@ def count_inventory_items(q: str = "", category: str = "", raw_material_active: 
 
 
 def list_inventory_batches(q: str = "", category: str = "", page: int | None = None, page_size: int = 10, sort: str = "") -> list[dict]:
-    where = ["ii.item_type = 'finished_product'"]
+    where = ["ii.item_type = 'finished_product'", "ib.removed_at IS NULL"]
     params: list[object] = []
     q = q.strip()
     category = category.strip()
@@ -136,7 +141,7 @@ def list_inventory_batches(q: str = "", category: str = "", page: int | None = N
 
 
 def count_inventory_batches(q: str = "", category: str = "") -> int:
-    where = ["ii.item_type = 'finished_product'"]
+    where = ["ii.item_type = 'finished_product'", "ib.removed_at IS NULL"]
     params: list[object] = []
     q = q.strip()
     category = category.strip()
@@ -163,6 +168,7 @@ def list_products(
     page_size: int = 12,
     sort: str = "",
     active_only: bool = False,
+    include_packages: bool = True,
 ) -> list[dict]:
     where_extra = []
     params: list[object] = []
@@ -176,6 +182,8 @@ def list_products(
         params.append(category)
     if active_only:
         where_extra.append("p.is_active = true")
+    if not include_packages:
+        where_extra.append("p.category IS DISTINCT FROM 'Package'")
     paging_sql = ""
     if page is not None:
         paging_sql = " LIMIT %s OFFSET %s"
@@ -209,7 +217,7 @@ def list_products(
     ), tuple(params) or None))
 
 
-def count_products(q: str = "", category: str = "", active_only: bool = False) -> int:
+def count_products(q: str = "", category: str = "", active_only: bool = False, include_packages: bool = True) -> int:
     query = """
         SELECT COUNT(*) AS total
         FROM inventory_items p
@@ -226,6 +234,8 @@ def count_products(q: str = "", category: str = "", active_only: bool = False) -
         params.append(category)
     if active_only:
         query += " AND p.is_active = true"
+    if not include_packages:
+        query += " AND p.category IS DISTINCT FROM 'Package'"
     row = fetch_one(query + ";", tuple(params) or None)
     return int(row["total"])
 
@@ -286,6 +296,54 @@ def list_alerts() -> list[dict]:
     """))
 
 
+# The ledger keeps component stock movements intact, but presents a package
+# dispatch as one event before searching, counting, sorting, or paginating.
+INVENTORY_LOG_EVENTS = """
+    WITH log_events AS (
+        SELECT im.movement_id, im.movement_type, ii.name AS entity,
+               im.quantity_delta, im.unit, im.balance_before, im.balance_after,
+               im.actor_account_id, im.actor_name, im.note, im.dispatch_id,
+               im.raw_deduction_reference, im.created_at,
+               NULL::text AS package_mode, NULL::json AS package_contents,
+               NULL::text AS package_search
+        FROM inventory_movements im
+        JOIN inventory_items ii ON ii.item_id=im.item_id
+        WHERE NOT EXISTS (SELECT 1 FROM inventory_package_dispatch_details h
+                          WHERE h.dispatch_id=im.dispatch_id)
+        UNION ALL
+        SELECT actor.movement_id, 'stock_dispatch', h.package_name,
+               -d.quantity, 'package', NULL::numeric, NULL::numeric,
+               d.actor_account_id, actor.actor_name, d.note, d.dispatch_id,
+               NULL::uuid, d.created_at, h.package_mode,
+               (SELECT json_agg(json_build_object(
+                   'name', l.product_name, 'quantity_per_package', l.quantity_per_package,
+                   'total_packs', l.total_packs) ORDER BY l.product_name,l.product_item_id)
+                FROM inventory_package_dispatch_lines l WHERE l.dispatch_id=d.dispatch_id),
+               (SELECT string_agg(l.product_name,' ') FROM inventory_package_dispatch_lines l
+                WHERE l.dispatch_id=d.dispatch_id)
+        FROM inventory_dispatches d
+        JOIN inventory_package_dispatch_details h USING(dispatch_id)
+        JOIN LATERAL (
+            SELECT m.movement_id,m.actor_name FROM inventory_movements m
+            WHERE m.dispatch_id=d.dispatch_id ORDER BY m.movement_id LIMIT 1
+        ) actor ON true
+    )
+"""
+
+
+def _inventory_log_filter(q, category):
+    where = []
+    params = []
+    if q.strip():
+        where.append("""(im.movement_type ILIKE %s OR im.entity ILIKE %s
+            OR im.actor_name ILIKE %s OR im.package_search ILIKE %s)""")
+        params.extend([f"%{q.strip()}%"] * 4)
+    if category.strip() in MOVEMENT_CATEGORY_TYPES:
+        where.append("im.movement_type = ANY(%s)")
+        params.append(list(MOVEMENT_CATEGORY_TYPES[category.strip()]))
+    return (f"WHERE {' AND '.join(where)}" if where else ""), params
+
+
 def list_inventory_movements(
     q: str = "",
     category: str = "",
@@ -293,31 +351,16 @@ def list_inventory_movements(
     page_size: int = 10,
     sort: str = "",
 ) -> list[dict]:
-    params: list[object] = []
-    where: list[str] = []
-    q = q.strip()
-    category = category.strip()
-    if q:
-        search = f"%{q}%"
-        where.append("""(
-            im.movement_type ILIKE %s
-            OR ii.name ILIKE %s
-            OR im.actor_name ILIKE %s
-        )""")
-        params.extend([search, search, search])
-    if category in MOVEMENT_CATEGORY_TYPES:
-        where.append("im.movement_type = ANY(%s)")
-        params.append(list(MOVEMENT_CATEGORY_TYPES[category]))
-    where_sql = f"WHERE {' AND '.join(where)}" if where else ""
+    where_sql, params = _inventory_log_filter(q, category)
     paging_sql = ""
     if page is not None:
         paging_sql = " LIMIT %s OFFSET %s"
         params.extend([page_size, (page - 1) * page_size])
     order_sql = safe_sort_sql(sort, MOVEMENT_SORTS, MOVEMENT_SORTS["newest"])
-    return clean_row(fetch_all(f"""
+    return clean_row(fetch_all(INVENTORY_LOG_EVENTS + f"""
         SELECT im.movement_id,
                im.movement_type AS action,
-               ii.name AS entity,
+               im.entity,
                im.quantity_delta,
                im.unit,
                im.balance_before,
@@ -327,9 +370,10 @@ def list_inventory_movements(
                im.note,
                im.dispatch_id,
                im.raw_deduction_reference,
-               im.created_at
-        FROM inventory_movements im
-        JOIN inventory_items ii ON ii.item_id = im.item_id
+               im.created_at,
+               im.package_mode,
+               im.package_contents
+        FROM log_events im
         {where_sql}
         ORDER BY {order_sql}
         {paging_sql};
@@ -337,26 +381,10 @@ def list_inventory_movements(
 
 
 def count_inventory_movements(q: str = "", category: str = "") -> int:
-    params: list[object] = []
-    where: list[str] = []
-    q = q.strip()
-    category = category.strip()
-    if q:
-        search = f"%{q}%"
-        where.append("""(
-            im.movement_type ILIKE %s
-            OR ii.name ILIKE %s
-            OR im.actor_name ILIKE %s
-        )""")
-        params.extend([search, search, search])
-    if category in MOVEMENT_CATEGORY_TYPES:
-        where.append("im.movement_type = ANY(%s)")
-        params.append(list(MOVEMENT_CATEGORY_TYPES[category]))
-    where_sql = f"WHERE {' AND '.join(where)}" if where else ""
-    row = fetch_one(f"""
+    where_sql, params = _inventory_log_filter(q, category)
+    row = fetch_one(INVENTORY_LOG_EVENTS + f"""
         SELECT COUNT(*) AS total
-        FROM inventory_movements im
-        JOIN inventory_items ii ON ii.item_id = im.item_id
+        FROM log_events im
         {where_sql};
     """, tuple(params) or None)
     return int(row["total"])

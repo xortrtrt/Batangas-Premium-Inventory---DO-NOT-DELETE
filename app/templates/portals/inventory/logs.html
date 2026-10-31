@@ -56,7 +56,7 @@
       <span class="movement-row__icon" aria-hidden="true"><i data-lucide="{{ movement_icon }}"></i></span>
       <div class="movement-row__item">
         <strong>{{ log.entity }}</strong>
-        <span>{{ movement_label }}</span>
+        <span>{{ 'Package dispatch · ' ~ ('Standard' if log.package_mode == 'standard' else 'Customized') if log.package_mode else movement_label }}</span>
         <small class="movement-row__actor"><i data-lucide="user-check" aria-hidden="true"></i> Recorded by {{ log.actor_name }}</small>
         {% if log.dispatch_id %}<small class="movement-row__reference">Dispatch {{ log.dispatch_id }}</small>{% endif %}
         {% if log.raw_deduction_reference %}<small class="movement-row__reference">Deduction {{ log.raw_deduction_reference }}</small>{% endif %}
@@ -67,13 +67,36 @@
         <strong>{{ '+' if is_in else '' }}{{ log.quantity_delta|stock_quantity }} <small>{{ log.unit }}</small></strong>
       </div>
       <div class="movement-row__balance">
+        {% if log.package_mode %}
+        <span>Finished goods inside</span>
+        <strong>{{ log.package_contents|length }} product{{ '' if log.package_contents|length == 1 else 's' }}</strong>
+        {% else %}
         <span>Balance {{ log.balance_before|stock_quantity }} →</span>
         <strong>{{ log.balance_after|stock_quantity }} <small>{{ log.unit }}</small></strong>
+        {% endif %}
       </div>
       <time class="movement-row__date" datetime="{{ log.created_at }}">
         <i data-lucide="calendar-days" aria-hidden="true"></i>
         {{ log.created_at|nice_date }}
       </time>
+      {% if log.package_mode %}
+      <details class="package-log-contents">
+        <summary><span>View package contents</span><span class="package-log-contents__close">Hide package contents</span><i data-lucide="chevron-down" aria-hidden="true"></i></summary>
+        <div class="package-log-contents__body">
+          <p>Recorded contents for {{ (-log.quantity_delta)|stock_quantity }} package{{ '' if log.quantity_delta == -1 else 's' }} dispatched.</p>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Finished product</th><th>Packs per package</th><th>Total packs dispatched</th></tr></thead>
+              <tbody>
+                {% for component in log.package_contents %}
+                <tr><td>{{ component.name }}</td><td>{{ component.quantity_per_package|stock_quantity }}</td><td>{{ component.total_packs|stock_quantity }}</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </details>
+      {% endif %}
     </article>
     {% else %}
     <div class="movement-empty">

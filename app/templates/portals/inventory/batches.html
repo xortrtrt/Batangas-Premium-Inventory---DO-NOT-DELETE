@@ -1,4 +1,5 @@
 <section class="stock-ledger batch-ledger" aria-labelledby="batch-ledger-title">
+  <nav class="movement-categories" aria-label="Batch views"><a class="movement-category is-active" href="/portal/inventory/batches" aria-current="page">Active batches</a><a class="movement-category" href="/portal/inventory/removed-batches">Removed batches</a></nav>
   <header class="stock-ledger__header">
     <div>
       <span class="stock-ledger__eyebrow">Shelf-life control</span>
@@ -53,7 +54,7 @@
       {% set is_expired = batch.quality_status == 'expired' or (batch.days_until_expiry is not none and batch.days_until_expiry < 0) %}
       {% set is_expiring = batch.days_until_expiry is not none and batch.days_until_expiry >= 0 and batch.days_until_expiry <= 7 %}
       {% set batch_state = 'expired' if is_expired or is_rejected else 'hold' if is_hold else 'expiring' if is_expiring else 'healthy' %}
-      {% set source_label = 'Produced in-house' if batch.source_type == 'production' else 'Directly received' %}
+      {% set source_label = 'Opening balance' if batch.source_type == 'opening_balance' else 'Produced in-house' if batch.source_type == 'production' else 'Directly received' %}
     <article class="batch-row batch-row--{{ batch_state }}" role="listitem">
       <span class="batch-row__icon" aria-hidden="true"><i data-lucide="package-open"></i></span>
       <div class="batch-row__identity">
