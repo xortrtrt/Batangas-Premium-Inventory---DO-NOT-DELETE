@@ -218,10 +218,20 @@
       <button class="icon-button" type="button" aria-label="Close create product recipe" data-inventory-modal-close><i data-lucide="x"></i></button>
     </header>
     <div class="inventory-modal-body">
-      <form class="form-panel bare inventory-modal-form inventory-recipe-panel" id="product-recipe-form" data-recipe-editor action="/portal/inventory/products" method="post">
+      <form class="form-panel bare inventory-modal-form inventory-recipe-panel" id="product-recipe-form" data-recipe-editor action="/portal/inventory/products" method="post" enctype="multipart/form-data">
         <div class="form-grid">
           <label>Product name <input required name="name" placeholder="Tocino" /></label>
           <label>Category <select name="category" required>{% for category in product_categories %}<option value="{{ category }}">{{ category }}</option>{% endfor %}</select></label>
+        </div>
+        <div class="recipe-image-upload" data-product-image-upload>
+          <div class="recipe-image-upload__preview"><i data-lucide="image-plus" aria-hidden="true"></i><img data-product-image-preview alt="Selected product image preview" hidden /></div>
+          <div class="recipe-image-upload__controls">
+            <label for="recipe-product-image">Product image <span class="hint">Optional</span></label>
+            <small id="recipe-image-help">Add a photo for the product card. JPG, PNG, or WebP · up to 2 MB.</small>
+            <input id="recipe-product-image" name="product_image" type="file" accept="image/jpeg,image/png,image/webp" aria-describedby="recipe-image-help recipe-image-status" data-product-image-input />
+            <span id="recipe-image-status" class="hint" role="status" data-product-image-status>No image selected.</span>
+            <button class="button subtle" type="button" data-product-image-clear hidden>Remove image</button>
+          </div>
         </div>
         <div class="inventory-form-section-head">
           <div><strong>Ingredients per pack</strong><small>Add every material used by one finished pack.</small></div>

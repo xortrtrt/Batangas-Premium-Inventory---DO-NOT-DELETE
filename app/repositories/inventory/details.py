@@ -6,7 +6,8 @@ from ..settings import business_setting
 
 
 def product_stock_details(product_id: int, batch_page: int = 1, movement_page: int = 1) -> dict | None:
-    product = fetch_one("""SELECT item_id, name, category, unit, is_active
+    product = fetch_one("""SELECT item_id, name, category, unit, is_active,
+        EXISTS(SELECT 1 FROM inventory_product_images pi WHERE pi.product_item_id=inventory_items.item_id) has_image
         FROM inventory_items WHERE item_id=%s AND item_type='finished_product';""", (product_id,))
     if product is None:
         return None

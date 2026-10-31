@@ -29,7 +29,12 @@ def create_product_with_recipe(
     quantity_required: list[object],
     quantity_required_units: list[object],
     actor_account_id: int | None = None,
+    *,
+    product_image: tuple[str, bytes] | None = None,
 ) -> dict:
+    if product_image is not None:
+        from app.uploads import validate_product_image
+        validate_product_image(*product_image)
     product_name = normalize_inventory_name(name, "Product name")
     product_category = require_inventory_choice(category, product_categories, "Category")
     product_unit = "pack"
@@ -88,6 +93,10 @@ def create_product_with_recipe(
             RETURNING item_id AS product_id, name, category, unit;
         """, (product_name, product_category, product_description, product_unit))
         product = cur.fetchone()
+
+        if product_image is not None:
+            cur.execute("""INSERT INTO inventory_product_images(product_item_id,content_type,image_data)
+                VALUES (%s,%s,%s)""", (product["product_id"], *product_image))
 
         for material_id, required, required_unit in requirements:
             material = materials[material_id]

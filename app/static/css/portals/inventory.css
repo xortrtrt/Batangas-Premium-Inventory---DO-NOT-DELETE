@@ -5132,3 +5132,23 @@
 @media (prefers-reduced-motion: reduce) {
   .role-team-leader .material-removal__trigger { transition: none; }
 }
+
+.recipe-image-upload {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+  padding: 20px;
+  border: 1px solid #e4dcc6;
+  border-radius: 16px;
+  background: #faf8f1;
+}
+.recipe-image-upload__preview { position: relative; display: grid; place-items: center; width: 112px; height: 112px; flex: 0 0 112px; border: 1px dashed #cabc94; border-radius: 12px; color: #977710; overflow: hidden; }
+.recipe-image-upload__preview > svg { width: 30px; height: 30px; }
+.recipe-image-upload__preview img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; background: #fff; }
+.recipe-image-upload__preview img[hidden], .recipe-image-upload button[hidden] { display: none; }
+.recipe-image-upload__controls { display: grid; gap: 8px; flex: 1 1 240px; min-width: 0; }
+.recipe-image-upload__controls label { font-weight: 700; }
+.recipe-image-upload__controls small { color: #6c6559; }
+.recipe-image-upload__controls input { width: 100%; }
+.recipe-image-upload__controls button { justify-self: start; }

@@ -61,6 +61,7 @@ def list_inventory_items(q: str = "", category: str = "", page: int | None = Non
                    WHEN 'finished_product' THEN 'Finished product'
                END AS item_type_label,
                ii.category, ii.name, ii.unit,
+               EXISTS(SELECT 1 FROM inventory_product_images pi WHERE pi.product_item_id=ii.item_id) has_image,
                (SELECT s.mode FROM inventory_package_settings s WHERE s.package_item_id=ii.item_id) package_mode,
                ii.is_active,
                CASE

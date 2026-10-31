@@ -15,7 +15,7 @@
 <section class="panel lifecycle-workspace lifecycle-product-page">
   <header class="lifecycle-hero lifecycle-product-hero">
     <div class="lifecycle-product-identity">
-      <div class="lifecycle-product-photo"><img src="{{ product.name|product_image|media_url }}" alt="{{ product.name }}" width="128" height="128"></div>
+      <div class="lifecycle-product-photo"><img src="{{ product|product_image_url }}" alt="{{ product.name }}" width="128" height="128"></div>
       <div><span class="eyebrow">Finished product / {{ product.category }}</span><h2>{{ product.name }}</h2>
         <div class="lifecycle-product-meta"><span><i data-lucide="package" aria-hidden="true"></i>Stock counted in whole packs</span></div>
         <span class="status-badge lifecycle-status" data-state="{{ 'approved' if product.is_active else 'rejected' }}">{{ 'Active product' if product.is_active else 'Inactive product' }}</span>

@@ -6,12 +6,28 @@ from uuid import uuid4
 
 from fastapi import APIRouter, Form, HTTPException, Request
 from starlette.concurrency import run_in_threadpool
+from starlette.datastructures import UploadFile
+from fastapi.responses import Response
 from app.web import path_with_query
+from app.uploads import PROFILE_IMAGE_MAX_BYTES, validate_product_image
+from app.database import fetch_one
 
 from app import repositories as data
 from app.portals import shared
 
 router = APIRouter()
+
+
+@router.get("/portal/inventory/products/{product_id}/image")
+def product_image(request: Request, product_id: int):
+    guard = shared.require_portal_session(request)
+    if guard:
+        return guard
+    image = fetch_one("SELECT content_type,image_data FROM inventory_product_images WHERE product_item_id=%s", (product_id,))
+    if image is None:
+        raise HTTPException(status_code=404, detail="Product image not found.")
+    return Response(bytes(image["image_data"]), media_type=image["content_type"],
+                    headers={"Cache-Control": "private, max-age=3600", "X-Content-Type-Options": "nosniff"})
 
 
 @router.post("/portal/inventory/packages/{package_id}/settings")
@@ -479,13 +495,22 @@ async def create_product(request: Request):
     quantity_required_units = [value for value in form.getlist("quantity_required_unit[]") if str(value).strip()]
 
     try:
-        data.create_product_with_recipe(
+        image = form.get("product_image")
+        image_content = None
+        if isinstance(image, UploadFile) and image.filename:
+            content = await image.read(PROFILE_IMAGE_MAX_BYTES + 1)
+            validate_product_image(image.content_type, content)
+            image_content = (image.content_type, content)
+        elif image and not isinstance(image, UploadFile):
+            raise ValueError("Choose a product image file.")
+        await run_in_threadpool(data.create_product_with_recipe,
             str(form.get("name", "")),
             str(form.get("category", "")),
             material_item_ids,
             quantity_required,
             quantity_required_units,
             actor_account_id=shared.session_account_id(request),
+            product_image=image_content,
         )
     except ValueError as exc:
         return shared.redirect_to(shared.safe_portal_path("inventory", "inventory", error=str(exc)))

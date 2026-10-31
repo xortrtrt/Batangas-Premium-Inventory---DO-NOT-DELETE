@@ -77,6 +77,12 @@ The first command is a read-only preview. The second adds missing definitions,
 blocks conflicts, preserves existing records and balances, and creates no source
 stock, accounts, or sales. See [catalog details](catalog/README.md).
 
+Inventory Workspace → Create product recipe supports an optional JPG, PNG, or
+WebP photo up to 2 MB, with a preview and removal before saving. Migration 009
+stores product images in the database so they survive redeploys. The image and
+recipe save in one transaction, and the catalog and product details use the
+uploaded photo. Products without an upload retain their existing image fallback.
+
 ## Finished-goods packages
 
 Area Distributor's Package, Resellers Package, and Trial Package appear under

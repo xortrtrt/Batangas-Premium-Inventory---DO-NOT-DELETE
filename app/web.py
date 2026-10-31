@@ -93,6 +93,12 @@ def product_image(value: str) -> str:
 def media_url(filename: str) -> str:
     return f"/static/img/{quote(filename, safe='')}"
 
+
+def product_image_url(product: dict) -> str:
+    if product.get("has_image"):
+        return f"/portal/inventory/products/{product.get('item_id') or product['product_id']}/image"
+    return media_url(product_image(product["name"]))
+
 def configure_templates(csrf_token) -> None:
     templates.env.globals["csrf_token"] = csrf_token
     templates.env.filters.update(
@@ -102,6 +108,7 @@ def configure_templates(csrf_token) -> None:
         nice_date=nice_date,
         product_image=product_image,
         media_url=media_url,
+        product_image_url=product_image_url,
     )
 
 def redirect_to(path: str) -> RedirectResponse:

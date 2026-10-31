@@ -24,7 +24,7 @@ CLEAR_TABLES = (
     "inventory_package_dispatch_details", "inventory_package_dispatch_lines",
 )
 KNOWN_TABLES = {*CLEAR_TABLES, "inventory_items", "inventory_schema_migrations",
-                "inventory_package_settings", "inventory_package_components"}
+                "inventory_package_settings", "inventory_package_components", "inventory_product_images"}
 LEGACY_TOKEN_TABLES = {"account_password_otps", "account_activation_tokens"}
 HISTORY_TRIGGERS = (
     ("inventory_movements", "inventory_movements_immutable"),

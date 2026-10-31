@@ -15,6 +15,15 @@ PROFILE_IMAGE_MAX_BYTES = 2 * 1024 * 1024
 PROFILE_IMAGE_DIR = Path(__file__).resolve().parent / "static" / "uploads" / "profiles"
 
 
+def validate_product_image(content_type: str, content: bytes) -> None:
+    if not content or len(content) > PROFILE_IMAGE_MAX_BYTES:
+        raise ValueError("Product image must be 2 MB or smaller and cannot be empty.")
+    try:
+        _profile_image_extension(content_type, content)
+    except ValueError:
+        raise ValueError("Product image must be a valid JPG, PNG, or WebP image.") from None
+
+
 def _profile_image_extension(content_type: str, content: bytes) -> str:
     extension = PROFILE_IMAGE_TYPES.get(content_type)
     if extension == ".jpg" and content.startswith(b"\xff\xd8\xff"):
