@@ -1,0 +1,132 @@
+{% if supply_choices %}
+<form
+  novalidate
+  class="form-panel bare supplies-stock-form"
+  method="post"
+  action="/portal/inventory/supplies/movements"
+  data-supply-form
+>
+  <div class="supplies-stock-fields">
+  <input
+    type="hidden"
+    name="csrf_token"
+    value="{{ csrf_token(request) }}"
+  /><input
+    type="hidden"
+    name="submission_reference"
+    value="{{ supply_movement_references[supply_tab] }}"
+  />
+  {% if supply_draft_expired %}
+  <p class="supplies-form-note" role="status">
+    This saved entry is no longer available. Select the item and review your
+    entry again.
+  </p>
+  {% endif %}
+  <input type="hidden" name="draft_id" value="{{ supply_draft_id }}" />
+  <input type="hidden" name="movement_type" value="{{ supply_tab }}" />
+  <div
+    class="supplies-direction-banner supplies-direction-banner--{{ supply_tab }}"
+  >
+    <i
+      data-lucide="{{ 'arrow-down-to-line' if supply_tab == 'stock_in' else 'arrow-up-from-line' }}"
+      aria-hidden="true"
+    ></i>
+    <div>
+      <strong
+        >{{ 'Add to available stock' if supply_tab == 'stock_in' else 'Deduct
+        from available stock' }}</strong
+      ><span
+        >{{ 'This entry increases the selected item’s balance.' if supply_tab ==
+        'stock_in' else 'This entry decreases the selected item’s balance.'
+        }}</span
+      >
+    </div>
+  </div>
+  <div class="supplies-selected-stock">
+    <img
+      src="/static/img/supplies-stockroom.svg"
+      alt="Supply preview"
+      width="110"
+      height="90"
+      data-supply-selected-image
+    />
+    <div>
+      <span class="supplies-category">Selected item</span
+      ><strong data-supply-selected-name>Select a supply item</strong
+      ><span data-supply-selected-balance></span>
+    </div>
+  </div>
+  <div class="form-grid">
+    <div class="supplies-field">
+      <label for="{{ supply_tab }}-supply-id">Supply item</label
+      ><select
+        id="{{ supply_tab }}-supply-id"
+        name="supply_id"
+        required
+        data-supply-unit
+      >
+        <option value="">Choose a supply item</option>
+        {% for item in supply_choices %}
+        <option
+          value="{{ item.supply_id }}"
+          data-unit="{{ item.unit }}"
+          data-image="{{ supply_photo(item) }}"
+          data-name="{{ item.name }}"
+          data-balance="{{ item.quantity_available|stock_quantity }}"
+          {% if supply_selected_id|string == item.supply_id|string %}selected{% endif %}
+        >
+          {{ item.name }} — {{ item.quantity_available|stock_quantity }} {{
+          item.unit }} available
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="supplies-field">
+      <label for="{{ supply_tab }}-quantity">Quantity <span data-supply-unit-help></span></label
+      ><input
+        id="{{ supply_tab }}-quantity"
+        name="quantity"
+        type="number"
+        min="1"
+        step="1"
+        max="999999999"
+        required
+        data-supply-quantity
+        placeholder="Enter quantity"
+        value="{{ supply_draft.get('quantity', '') }}"
+      />
+    </div>
+  </div>
+  <div class="supplies-field">
+    <label for="{{ supply_tab }}-reason">Reason</label
+    ><textarea
+      id="{{ supply_tab }}-reason"
+      style="resize: none"
+      name="reason"
+      required
+      minlength="1"
+      maxlength="500"
+      rows="3"
+      placeholder="{{ 'e.g. Received from supplier or returned by team' if supply_tab == 'stock_in' else 'e.g. Issued to packing team or damaged supplies' }}"
+    >
+{{ supply_draft.get('reason', '') }}</textarea
+    >
+  </div>
+
+  </div>
+  <footer class="inventory-modal-actions">
+    <button class="button subtle" type="button" data-inventory-modal-close>
+      Cancel</button
+    ><button class="button primary" type="submit">
+      Save {{ 'stock in' if supply_tab == 'stock_in' else 'stock out' }}
+    </button>
+  </footer>
+</form>
+{% else %}
+<div class="supplies-empty">
+  <i data-lucide="package-open" aria-hidden="true"></i>
+  <h3>Add a supply item first</h3>
+  <p>Create items before recording stock in or out.</p>
+  <a class="button primary" href="?modal=create">Create supply item</a>
+</div>
+{% endif %}

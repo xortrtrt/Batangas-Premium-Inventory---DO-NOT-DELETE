@@ -6,26 +6,6 @@
   src: url("../fonts/rubik-latin-300-800-v31.woff2") format("woff2");
 }
 
-.payment-details-summary {
-  display: grid;
-  gap: 3px;
-  margin-bottom: 9px;
-  color: var(--text-light);
-  font-size: 0.78rem;
-  line-height: 1.4;
-}
-
-.payment-details-summary strong {
-  color: var(--text);
-  font-size: 0.82rem;
-  overflow-wrap: anywhere;
-}
-
-.payment-details-summary .status-badge {
-  justify-self: start;
-  margin-top: 3px;
-}
-
 :root {
   --text: #241f19;
   --text-light: #6f675d;
@@ -203,6 +183,17 @@ select:disabled {
 .portal-nav {
   display: grid;
   gap: 7px;
+}
+
+.portal-nav-group-label {
+  display: block;
+  margin: 11px 8px 0;
+  padding: 12px 4px 0;
+  border-top: 1px solid rgba(215, 182, 33, 0.3);
+  color: #d9cfaa;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
 }
 
 .portal-nav a {
@@ -655,88 +646,7 @@ select:disabled {
 }
 
 @media (min-width: 861px) {
-  body.portal-body .portal-main > .portal-topbar {
-    position: fixed;
-    inset: 94px auto auto 22px;
-    z-index: 70;
-    width: 236px;
-    min-height: 42px;
-    padding: 0;
-    border: 0;
-    background: transparent;
-    box-shadow: none;
-    overflow: visible;
-  }
-
-  body.portal-body .portal-sidebar .portal-nav {
-    margin-top: 56px;
-  }
-
-  body.portal-body .portal-main > .portal-topbar .topbar-actions {
-    width: 100%;
-    flex-wrap: nowrap;
-  }
-
-  body.portal-body .portal-main > .portal-topbar .notification-menu {
-    flex: 1 1 auto;
-    min-width: 0;
-  }
-
-  body.portal-body .portal-main > .portal-topbar .notification-trigger {
-    width: 100%;
-    min-width: 0;
-    padding: 0 12px;
-    justify-content: flex-start;
-    gap: 10px;
-    border-color: rgba(215, 182, 33, 0.42);
-    background: rgba(255, 255, 255, 0.06);
-    color: #f7f4ef;
-    box-shadow: none;
-  }
-
-  body.portal-body .portal-main > .portal-topbar .notification-trigger:hover,
-  body.portal-body .portal-main > .portal-topbar .notification-menu[open] .notification-trigger,
-  body.portal-body .portal-main > .portal-topbar .notification-menu.is-current .notification-trigger {
-    border-color: rgba(215, 182, 33, 0.78);
-    background: rgba(215, 182, 33, 0.14);
-    color: var(--gold);
-    transform: none;
-  }
-
-  body.portal-body .portal-main > .portal-topbar .notification-trigger-label {
-    display: inline;
-    min-width: 0;
-    overflow: hidden;
-    color: inherit;
-    font-size: 0.82rem;
-    font-weight: 800;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  body.portal-body .portal-main > .portal-topbar .portal-cart-trigger {
-    flex: 0 0 42px;
-    width: 42px;
-    min-width: 42px;
-    border-color: rgba(215, 182, 33, 0.42);
-    background: rgba(255, 255, 255, 0.06);
-    color: var(--gold);
-    box-shadow: none;
-  }
-
-  body.portal-body .portal-main > .portal-topbar .notification-count {
-    top: 50%;
-    right: 10px;
-    transform: translateY(-50%);
-    border-color: var(--sidebar);
-  }
-
-  body.portal-body .portal-main > .portal-topbar .notification-panel {
-    top: -8px;
-    right: auto;
-    left: calc(100% + 14px);
-    transform-origin: top left;
-  }
+  body.portal-body .portal-main > .portal-topbar { display: none; }
 }
 
 .notification-head {
@@ -1829,25 +1739,6 @@ select:disabled {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-.inquiry-card {
-  display: grid;
-  gap: 16px;
-  padding: 18px;
-}
-
-.inquiry-card h3 {
-  margin: 10px 0 8px;
-}
-
-.inquiry-card p,
-.inquiry-card small {
-  color: var(--text-light);
-}
-
-.inquiry-card small {
-  overflow-wrap: anywhere;
-}
-
 .inline-edit {
   display: grid;
   grid-template-columns: minmax(180px, 1fr) minmax(190px, 430px) auto;
@@ -2404,92 +2295,6 @@ select:disabled {
   font-weight: 500;
 }
 
-.payment-proof-cell,
-.proof-links,
-.proof-upload-form {
-  display: grid;
-  gap: 8px;
-  min-width: 0;
-}
-
-/* Long orders stay easy to scan in table rows while retaining every item in an
-   accessible native disclosure. */
-.order-items-overflow {
-  min-width: 0;
-  margin-top: 2px;
-}
-
-.order-items-overflow summary {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  width: fit-content;
-  color: var(--gold-deep);
-  cursor: pointer;
-  font-size: 0.76rem;
-  font-weight: 850;
-  line-height: 1.35;
-  list-style: none;
-}
-
-.order-items-overflow summary::-webkit-details-marker {
-  display: none;
-}
-
-.order-items-overflow summary::after {
-  content: "⌄";
-  font-size: 1rem;
-  line-height: 0.8;
-  transition: transform 150ms ease;
-}
-
-.order-items-overflow[open] summary::after {
-  transform: rotate(180deg);
-}
-
-.order-items-overflow-list {
-  display: grid;
-  gap: 6px;
-  margin-top: 8px;
-  padding-top: 8px;
-  border-top: 1px dashed rgba(170, 134, 22, 0.32);
-}
-
-.order-items-overflow-list > span {
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
-
-.proof-links a {
-  display: inline-flex;
-  width: fit-content;
-  max-width: 100%;
-  align-items: center;
-  gap: 7px;
-  color: var(--gold-deep);
-  font-size: 0.88rem;
-  font-weight: 850;
-  overflow-wrap: anywhere;
-}
-
-.proof-links svg {
-  flex: 0 0 auto;
-  width: 16px;
-  height: 16px;
-}
-
-.proof-upload-form {
-  max-width: 320px;
-}
-
-.proof-upload-form label {
-  display: grid;
-  gap: 6px;
-  color: var(--primary);
-  font-size: 0.82rem;
-  font-weight: 800;
-}
-
 .proof-modal[hidden] {
   display: none;
 }
@@ -2527,72 +2332,6 @@ select:disabled {
 
 .proof-modal-card.is-portrait-proof {
   width: min(560px, 100%);
-}
-
-.proof-modal-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  min-width: 0;
-  padding: 18px 20px 14px;
-  border-bottom: 1px solid rgba(215, 182, 33, 0.34);
-  background: linear-gradient(180deg, #fffaf0, #f8efd7);
-}
-
-.proof-modal-head > div {
-  min-width: 0;
-}
-
-.proof-modal-head h2 {
-  margin: 2px 0 0;
-  color: var(--primary);
-  font-size: clamp(1rem, 2.4vw, 1.35rem);
-  line-height: 1.18;
-  overflow-wrap: anywhere;
-  word-break: break-word;
-}
-
-.proof-modal-head .icon-button {
-  flex: 0 0 auto;
-  background: var(--surface);
-}
-
-.proof-modal-body {
-  display: grid;
-  place-items: center;
-  min-height: 260px;
-  overflow: auto;
-  padding: 18px;
-  background:
-    linear-gradient(45deg, rgba(255, 255, 255, 0.035) 25%, transparent 25% 75%, rgba(255, 255, 255, 0.035) 75%),
-    linear-gradient(45deg, rgba(255, 255, 255, 0.035) 25%, transparent 25% 75%, rgba(255, 255, 255, 0.035) 75%),
-    #111;
-  background-position: 0 0, 12px 12px;
-  background-size: 24px 24px;
-}
-
-.proof-modal-image-button {
-  display: grid;
-  place-items: center;
-  width: 100%;
-  max-width: 100%;
-  min-height: inherit;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  cursor: zoom-in;
-}
-
-.proof-modal-image-button img {
-  display: block;
-  width: auto;
-  max-width: 100%;
-  height: auto;
-  max-height: 58vh;
-  object-fit: contain;
-  border-radius: 12px;
-  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.36);
 }
 
 .proof-modal-card.is-portrait-proof .proof-modal-body {
@@ -2647,19 +2386,6 @@ select:disabled {
   max-height: calc(100dvh - 136px);
   border-radius: 0;
   box-shadow: none;
-}
-
-.proof-modal-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  padding: 14px 20px 18px;
-  border-top: 1px solid rgba(215, 182, 33, 0.28);
-  background: #fffaf0;
-}
-
-.proof-modal-link {
-  min-height: 42px;
 }
 
 .proof-modal-card.logout-confirmation-card {
@@ -2740,13 +2466,6 @@ select:disabled {
 .otp-modal-form .button {
   width: 100%;
   justify-content: center;
-}
-
-.proof-upload-form input[type="file"] {
-  width: 100%;
-  max-width: 100%;
-  color: var(--text-light);
-  font-size: 0.84rem;
 }
 
 .pagination {
@@ -3196,17 +2915,6 @@ select:disabled {
     grid-template-columns: 1fr;
   }
 
-  .responsive-card-table .proof-links a {
-    width: 100%;
-    max-width: 100%;
-    padding: 8px 10px;
-    border: 1px solid rgba(215, 182, 33, 0.42);
-    border-radius: 10px;
-    background: rgba(215, 182, 33, 0.08);
-    line-height: 1.25;
-    word-break: break-word;
-  }
-
   .responsive-card-table .table-actions {
     flex-wrap: wrap;
     gap: 8px;
@@ -3229,38 +2937,12 @@ select:disabled {
     border-radius: 18px;
   }
 
-  .proof-modal-head {
-    padding: 14px 14px 12px;
-  }
-
-  .proof-modal-head h2 {
-    font-size: 0.98rem;
-  }
-
-  .proof-modal-body {
-    min-height: 220px;
-    padding: 10px;
-  }
-
-  .proof-modal-image-button img {
-    max-height: 54vh;
-  }
-
   .proof-modal.is-fullscreen .proof-modal-card {
     border-radius: 0;
   }
 
   .proof-modal.is-fullscreen .proof-modal-image-button img {
     max-height: calc(100dvh - 132px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
-  }
-
-  .proof-modal-footer {
-    padding: 12px 14px 14px;
-  }
-
-  .proof-modal-footer .button {
-    width: 100%;
-    justify-content: center;
   }
 
   .otp-modal-card {

@@ -1,7 +1,8 @@
-let previewUrl;
+const previewUrls = new WeakMap();
 function clearPreview(container) {
-  if (previewUrl) URL.revokeObjectURL(previewUrl);
-  previewUrl = undefined;
+  const previous = previewUrls.get(container);
+  if (previous) URL.revokeObjectURL(previous);
+  previewUrls.delete(container);
   const preview = container.querySelector('[data-product-image-preview]');
   preview.hidden = true;
   preview.removeAttribute('src');
@@ -20,7 +21,8 @@ document.addEventListener('change', (event) => {
     status.textContent = 'Choose a JPG, PNG, or WebP image up to 2 MB.';
     return;
   }
-  previewUrl = URL.createObjectURL(file);
+  const previewUrl = URL.createObjectURL(file);
+  previewUrls.set(container, previewUrl);
   const preview = container.querySelector('[data-product-image-preview]');
   preview.src = previewUrl;
   preview.hidden = false;

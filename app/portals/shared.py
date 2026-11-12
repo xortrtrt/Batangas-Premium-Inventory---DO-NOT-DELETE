@@ -185,6 +185,32 @@ async def portal(request: Request, role_key: str, section: str, message: str = "
     if guard:
         return guard
 
+    # Keep bookmarked supply tabs working after separating the workflows.
+    if section == "supplies":
+        legacy_tab = request.query_params.get("tab")
+        destination = {
+            "stock": "supplies-manage", "stock_in": "supplies-manage",
+            "stock_out": "supplies-manage", "create": "supplies-manage",
+            "daily": "supplies-movements", "items": "supplies",
+        }.get(legacy_tab)
+        if destination:
+            params = dict(request.query_params)
+            if legacy_tab in {"items", "daily"}:
+                params.pop("tab", None)
+            elif legacy_tab == "stock":
+                params["tab"] = "stock_in"
+            if destination == "supplies-manage":
+                params["modal"] = params.pop("tab")
+            return redirect_to(web.path_with_query(f"/portal/{role_key}/{destination}", **params))
+
+    if section == "supplies-manage" and request.query_params.get("tab") in {
+        "create", "stock", "stock_in", "stock_out", "photos"
+    }:
+        params = dict(request.query_params)
+        action = params.pop("tab")
+        params["modal"] = "stock_in" if action == "stock" else action
+        return redirect_to(web.path_with_query(f"/portal/{role_key}/{section}", **params))
+
     nav = portal_nav_for_request(role_key, request)
     nav_sections = {item[0]: item for item in nav}
     secondary_section = portal_config.portal_secondary_sections.get(role_key, {}).get(section)
@@ -200,11 +226,13 @@ async def portal(request: Request, role_key: str, section: str, message: str = "
         "portal_body_roles": "role-team-leader leader-role-inventory",
         "role": portal_role_for_request(role_key, request),
         "nav": nav,
+        "nav_groups": portal_config.portal_nav_groups_for(role_key, session_team_leader_role(request)),
         "section": section,
         "section_title": section_title,
         "message": message,
         "error": error,
-        "unread_notifications": data.unread_notification_count(role_key, request.session.get("account_id")),
+        "unread_notifications": data.unread_notification_count(role_key, request.session.get("account_id"))
+        if section == "notifications" else 0,
     }
     context.update(portal_section_context(role_key, section, request))
     template_name = PORTAL_TEMPLATES.get(role_key, "portals/inventory.html")

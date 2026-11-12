@@ -1,8 +1,8 @@
-<section class="content-grid two profile-layout sales-page sales-profile-page">
-  <article class="panel profile-card sales-profile-identity">
+<section class="content-grid two profile-layout">
+  <article class="panel profile-card">
     <div class="panel-heading">
       <h2>Profile</h2>
-      <span class="hint">Your inventory portal account details.</span>
+
     </div>
     {% include "portals/_profile_picture.html" %}
     <dl class="profile-details">
@@ -24,10 +24,10 @@
     </dl>
   </article>
 
-  <article class="panel sales-profile-security">
+  <article class="panel">
     <div class="panel-heading">
       <h2>Change password</h2>
-      <span class="hint">Use 8+ characters with uppercase, lowercase, number, and special character.</span>
+
     </div>
     <form class="form-panel bare" action="/portal/{{ role_key }}/profile/password" method="post">
       <label>

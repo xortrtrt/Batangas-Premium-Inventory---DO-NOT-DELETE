@@ -1,0 +1,86 @@
+<section class="stock-ledger supplies-workspace supplies-movements" aria-labelledby="supplies-title">
+  <header class="stock-ledger__header">
+    <div>
+      <span class="stock-ledger__eyebrow">Packaging &amp; supplies</span>
+      <h2 id="supplies-title">Supply movements</h2>
+      <p>Every increase and deduction, with the account that recorded it.</p>
+    </div>
+    <div class="stock-ledger__count" data-async-filter-sync="supply-count" aria-label="{{ supplies_page.pagination.total }} total movements">
+      <strong>{{ supplies_page.pagination.total|number }}</strong>
+      <span>movement{{ '' if supplies_page.pagination.total == 1 else 's' }}</span>
+    </div>
+  </header>
+
+  <div class="supplies-ledger-context">
+    <span class="supplies-today" data-async-filter-sync="supply-day"><i data-lucide="calendar-days" aria-hidden="true"></i>{{ supply_day.strftime('%B %d, %Y') if supply_day else 'All dates' }}</span>
+    <div class="supplies-module-actions">
+      <a class="button subtle" href="/portal/{{ role_key }}/supplies">View stocks</a>
+      <a class="button subtle" href="/portal/{{ role_key }}/supplies-manage">Supplies workspace</a>
+    </div>
+  </div>
+
+  <nav class="movement-categories" aria-label="Movement categories" data-async-filter-target="[data-async-filter-results]" data-async-filter-sync="supply-categories">
+    {% for value, label in supply_movement_categories %}
+    <a class="movement-category {{ 'is-active' if supply_kind == value else '' }}"
+       href="?q={{ supply_q|urlencode }}&amp;type={{ value|urlencode }}&amp;sort={{ supply_sort|urlencode }}&amp;date={{ supply_day or '' }}&amp;page=1"
+       {% if supply_kind == value %}aria-current="page"{% endif %}>{{ label }}</a>
+    {% endfor %}
+  </nav>
+
+  <form novalidate class="stock-ledger__filters supplies-ledger-filters" method="get" role="search" data-async-filter-target="[data-async-filter-results]">
+    <input type="hidden" name="type" value="{{ supply_kind }}" data-async-filter-sync="supply-type" />
+    <label class="stock-search">
+      <span class="sr-only">Search supply movements</span>
+      <i data-lucide="search" aria-hidden="true"></i>
+      <input id="supply-q" name="q" value="{{ supply_q }}" placeholder="Search item, movement, or account" maxlength="120" autocomplete="off" />
+    </label>
+    <label class="stock-sort supplies-ledger-date" for="supply-date">
+      <span>Movement date</span>
+      <input id="supply-date" type="date" name="date" value="{{ supply_day or '' }}" max="{{ supply_today }}" data-date-filter />
+    </label>
+    <label class="stock-sort">
+      <span>Order</span>
+      <select name="sort" aria-label="Sort supply movements">
+        <option value="">Newest first</option>
+        <option value="oldest" {{ 'selected' if supply_sort == 'oldest' else '' }}>Oldest first</option>
+        <option value="actor_asc" {{ 'selected' if supply_sort == 'actor_asc' else '' }}>Account A–Z</option>
+      </select>
+    </label>
+    <a class="stock-clear-button" href="/portal/{{ role_key }}/supplies-movements" data-async-filter-sync="supply-clear" {% if not (supply_q or supply_day or supply_kind or supply_sort) %}hidden{% endif %}>Clear</a>
+  </form>
+
+  <div data-async-filter-results data-async-filter-target="[data-async-filter-results]" aria-live="polite">
+    <div class="movement-list" role="list" aria-label="Supply movement history">
+      {% for movement in supply_items %}
+      {% set is_in = movement.quantity_delta > 0 %}
+      {% set is_out = movement.quantity_delta < 0 %}
+      <article class="movement-row movement-row--{{ 'in' if is_in else 'out' if is_out else 'neutral' }}" role="listitem">
+        <span class="movement-row__icon" aria-hidden="true"><i data-lucide="{{ 'arrow-down-to-line' if is_in else 'arrow-up-from-line' if is_out else 'minus' }}"></i></span>
+        <div class="movement-row__item">
+          <strong>{{ movement.name }}</strong>
+          <span>{{ 'Opening stock' if movement.movement_type == 'opening' else 'Stock in' if is_in else 'Stock out' if is_out else 'No change' }}</span>
+          <small class="movement-row__actor"><i data-lucide="user-check" aria-hidden="true"></i>Recorded by {{ movement.actor_name }}</small>
+          {% if movement.reason %}<small class="movement-row__note">{{ movement.reason }}</small>{% endif %}
+        </div>
+        <div class="movement-row__change">
+          <span class="movement-direction">{{ 'Stock in' if is_in else 'Stock out' if is_out else 'No change' }}</span>
+          <strong>{{ '+' if is_in else '' }}{{ movement.quantity_delta|stock_quantity }} <small>{{ movement.unit }}</small></strong>
+        </div>
+        <div class="movement-row__balance">
+          <span>Balance {{ movement.balance_before|stock_quantity }} →</span>
+          <strong>{{ movement.balance_after|stock_quantity }} <small>{{ movement.unit }}</small></strong>
+        </div>
+        <time class="movement-row__date" datetime="{{ movement.created_at }}"><i data-lucide="calendar-days" aria-hidden="true"></i>{{ movement.created_at|nice_date }}</time>
+      </article>
+      {% else %}
+      <div class="movement-empty">
+        <span><i data-lucide="package-search" aria-hidden="true"></i></span>
+        <strong>No movements found</strong>
+        <p>{{ 'Try another category or date, or clear your search.' if supply_q or supply_day or supply_kind or supply_sort else 'Recorded stock entries will appear here.' }}</p>
+        {% if supply_q or supply_day or supply_kind or supply_sort %}<a href="/portal/{{ role_key }}/supplies-movements" class="stock-clear-button">Show all movements</a>{% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {{ supply_pagination() }}
+  </div>
+</section>

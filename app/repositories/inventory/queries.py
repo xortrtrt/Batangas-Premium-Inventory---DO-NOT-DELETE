@@ -131,7 +131,7 @@ def list_inventory_batches(q: str = "", category: str = "", page: int | None = N
                END AS item_type_label,
                ii.name AS item_name, ii.category, ib.batch_code, ib.source_type,
                ib.quantity_received, ib.quantity_available, ib.unit,
-               ib.received_date, ib.expiry_date, ib.quality_status,
+               ib.received_date, ib.batch_date, ib.expiry_date, ib.quality_status,
                ib.expiry_date - CURRENT_DATE AS days_until_expiry
         FROM inventory_batches ib
         JOIN inventory_items ii ON ii.item_id = ib.item_id

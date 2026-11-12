@@ -20,7 +20,7 @@
   </div>
   <div class="profile-picture-copy">
     <strong>Profile picture</strong>
-    <small>Use the camera button to upload and align a JPG, PNG, or WebP image.</small>
+
     {% if account_profile and account_profile.profile_image_path %}
     <form action="/portal/{{ role_key }}/profile/picture/remove" method="post">
       <button class="button subtle" type="submit"><i data-lucide="trash-2"></i> Remove picture</button>
@@ -52,14 +52,14 @@
             >
               <i class="profile-picture-placeholder" data-lucide="user-round" aria-hidden="true"></i>
               <img alt="" data-profile-picture-editor-image hidden draggable="false" />
-              <small class="profile-picture-drag-hint" data-profile-picture-drag-hint>Drag to position</small>
+
             </div>
-            <p class="profile-picture-stage-copy">Move the photo within the frame.</p>
+
           </div>
           <div class="profile-picture-editor-controls">
             <div class="profile-picture-control-heading">
               <span>Source image</span>
-              <small>JPG, PNG, or WebP. Maximum 2 MB.</small>
+
             </div>
             <label class="profile-picture-file-button">
               <span><i data-lucide="image-plus"></i> Choose image</span>
@@ -68,7 +68,7 @@
             <div class="profile-picture-zoom-section">
               <div class="profile-picture-control-heading">
                 <span>Zoom</span>
-                <small>Adjust the crop scale</small>
+
               </div>
               <div class="profile-picture-zoom-tools" aria-label="Zoom image">
                 <button class="icon-button" type="button" data-profile-picture-zoom="-0.1" aria-label="Zoom out">

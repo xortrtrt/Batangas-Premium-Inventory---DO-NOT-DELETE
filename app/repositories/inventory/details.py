@@ -26,14 +26,14 @@ def product_stock_details(product_id: int, batch_page: int = 1, movement_page: i
     batch_pagination = pagination_meta(int(totals["batch_count"]), batch_page, 10)
     movement_pagination = pagination_meta(int(movement_count), movement_page, 10)
     batches = fetch_all("""SELECT batch_id, batch_code, source_type, quantity_received,
-        quantity_available, unit, received_date, expiry_date, quality_status,
+        quantity_available, unit, received_date, batch_date, expiry_date, quality_status,
         expiry_date<CURRENT_DATE AS is_expired, expiry_date-CURRENT_DATE AS days_left
         FROM inventory_batches WHERE item_id=%s AND removed_at IS NULL
         ORDER BY expiry_date ASC NULLS LAST, batch_id ASC LIMIT 10 OFFSET %s;""",
         (product_id, (batch_pagination["page"] - 1) * 10))
     movements = fetch_all("""SELECT m.movement_id, m.movement_type, m.quantity_delta, m.unit,
         m.balance_before, m.balance_after, m.actor_name, m.note, m.created_at,
-        m.dispatch_id, b.batch_code
+        m.dispatch_id, b.batch_code, b.batch_date
         FROM inventory_movements m LEFT JOIN inventory_batches b ON b.batch_id=m.affected_batch_id
         WHERE m.item_id=%s ORDER BY m.created_at DESC, m.movement_id DESC LIMIT 10 OFFSET %s;""",
         (product_id, (movement_pagination["page"] - 1) * 10))

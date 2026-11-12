@@ -2,8 +2,10 @@ from __future__ import annotations
 
 from pathlib import Path
 from uuid import uuid4
+from io import BytesIO
 
 from fastapi import UploadFile
+from PIL import Image, UnidentifiedImageError
 
 
 PROFILE_IMAGE_TYPES = {
@@ -13,15 +15,27 @@ PROFILE_IMAGE_TYPES = {
 }
 PROFILE_IMAGE_MAX_BYTES = 2 * 1024 * 1024
 PROFILE_IMAGE_DIR = Path(__file__).resolve().parent / "static" / "uploads" / "profiles"
+PRODUCT_IMAGE_MAX_PIXELS = 16_000_000
 
 
 def validate_product_image(content_type: str, content: bytes) -> None:
     if not content or len(content) > PROFILE_IMAGE_MAX_BYTES:
         raise ValueError("Product image must be 2 MB or smaller and cannot be empty.")
+    expected_format = {'image/jpeg': 'JPEG', 'image/png': 'PNG', 'image/webp': 'WEBP'}.get(content_type)
+    error = 'Product image must be a valid JPG, PNG, or WebP image, up to 16 megapixels.'
+    if expected_format is None:
+        raise ValueError(error)
     try:
-        _profile_image_extension(content_type, content)
-    except ValueError:
-        raise ValueError("Product image must be a valid JPG, PNG, or WebP image.") from None
+        with Image.open(BytesIO(content), formats=[expected_format]) as image:
+            if image.width * image.height > PRODUCT_IMAGE_MAX_PIXELS:
+                raise ValueError(error)
+            image.verify()
+        # Verification checks the container; reopening and decoding also catches
+        # damaged pixel data and truncated files that have plausible headers.
+        with Image.open(BytesIO(content), formats=[expected_format]) as image:
+            image.load()
+    except (UnidentifiedImageError, OSError, SyntaxError, ValueError, EOFError, Image.DecompressionBombError):
+        raise ValueError(error) from None
 
 
 def _profile_image_extension(content_type: str, content: bytes) -> str:

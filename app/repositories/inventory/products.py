@@ -12,7 +12,6 @@ from .._shared import (
     convert_inventory_quantity,
     get_transaction_cursor,
     normalize_inventory_name,
-    normalize_inventory_text,
     parse_inventory_decimal,
     product_categories,
     recipe_units,
@@ -170,22 +169,36 @@ def update_product_recipe(
                         entity_type="inventory_items", entity_id=product_id)
 
 
+def _batch_identity(batch_code: str, batch_date: date | None, today: date) -> tuple[str, date]:
+    # Keep manually entered text (including leading zeros and letter case).
+    code = batch_code.strip()
+    if not code:
+        raise ValueError("Batch number is required.")
+    if len(code) > 100:
+        raise ValueError("Batch number must be 100 characters or fewer.")
+    day = today if batch_date is None else batch_date
+    if type(day) is not date or day > today:
+        raise ValueError("Batch date must be today or an earlier date.")
+    return code, day
+
+
 def produce_product(
     product_id: int,
     batch_code: str,
     quantity: object,
     expiry_date: date,
     actor_account_id: int | None = None,
+    *,
+    batch_date: date | None = None,
 ) -> dict:
     from ..settings import business_setting
 
     near_expiry_days = int(business_setting("inventory.near_expiry_days"))
     critical_expiry_days = int(business_setting("inventory.critical_expiry_days"))
     produced_quantity = measurements.parse_whole_packs(quantity, "Produced quantity")
-    clean_batch_code = normalize_inventory_text(batch_code, "Batch code").upper()
-    if len(clean_batch_code) < 4:
-        raise ValueError("Batch code is too short.")
-    if expiry_date < business_today():
+    today = business_today()
+    clean_batch_code, clean_batch_date = _batch_identity(batch_code, batch_date, today)
+    if expiry_date < today:
         raise ValueError("Expiry date cannot be in the past.")
 
     with get_transaction_cursor() as cur:
@@ -201,9 +214,11 @@ def produce_product(
         if product is None:
             raise ValueError("Unknown product")
 
-        cur.execute("SELECT batch_id FROM inventory_batches WHERE batch_code = %s;", (clean_batch_code,))
+        cur.execute("""SELECT batch_id FROM inventory_batches
+            WHERE item_id = %s AND batch_date = %s AND lower(btrim(batch_code)) = lower(%s);""",
+                    (product_id, clean_batch_date, clean_batch_code))
         if cur.fetchone() is not None:
-            raise ValueError("Batch code already exists.")
+            raise ValueError("Batch number already exists for this product and batch date. Choose a different number or date.")
 
         cur.execute("""
             SELECT pr.material_item_id AS raw_material_id, pr.quantity_required, pr.unit AS recipe_unit,
@@ -242,11 +257,14 @@ def produce_product(
             })
 
         cur.execute("""
-            INSERT INTO inventory_batches (item_id, batch_code, source_type, quantity_received, quantity_available, unit, received_date, expiry_date, quality_status)
-            VALUES (%s, %s, 'production', %s, %s, %s, %s, %s, 'approved')
-            RETURNING batch_id AS product_batch_id, item_id AS product_id, batch_code, source_type, quantity_received, quantity_available, unit, received_date, expiry_date, quality_status;
-        """, (product_id, clean_batch_code, produced_quantity, produced_quantity, product["unit"], business_today(), expiry_date))
+            INSERT INTO inventory_batches (item_id, batch_code, batch_date, source_type, quantity_received, quantity_available, unit, received_date, expiry_date, quality_status)
+            VALUES (%s, %s, %s, 'production', %s, %s, %s, %s, %s, 'approved')
+            ON CONFLICT (item_id, batch_date, lower(btrim(batch_code))) DO NOTHING
+            RETURNING batch_id AS product_batch_id, item_id AS product_id, batch_code, batch_date, source_type, quantity_received, quantity_available, unit, received_date, expiry_date, quality_status;
+        """, (product_id, clean_batch_code, clean_batch_date, produced_quantity, produced_quantity, product["unit"], today, expiry_date))
         batch = cur.fetchone()
+        if batch is None:
+            raise ValueError("Batch number already exists for this product and batch date. Choose a different number or date.")
         actor_name = _inventory_actor_name(cur, actor_account_id)
 
         for requirement in requirements:
@@ -320,13 +338,15 @@ def add_product_batch(
     *,
     opening_note: str | None = None,
     opening_reference: str | None = None,
+    batch_date: date | None = None,
 ) -> dict:
     from ..settings import business_setting
 
     near_expiry_days = int(business_setting("inventory.near_expiry_days"))
     critical_expiry_days = int(business_setting("inventory.critical_expiry_days"))
     clean_quantity = measurements.parse_whole_packs(quantity)
-    clean_batch_code = normalize_inventory_text(batch_code, "Batch code").upper()
+    today = business_today()
+    clean_batch_code, clean_batch_date = _batch_identity(batch_code, batch_date, today)
     if source_type not in {"direct_received", "opening_balance"}:
         raise ValueError("Batch registration must use direct_received or opening_balance.")
     is_opening = source_type == "opening_balance"
@@ -339,27 +359,26 @@ def add_product_batch(
             raise ValueError("An account is required to record an opening balance.")
         if not note or len(note) > 500:
             raise ValueError("Enter an opening balance note of 1 to 500 characters.")
-        if len(clean_batch_code) > 100:
-            raise ValueError("Batch code must be 100 characters or fewer.")
         try:
             reference = str(UUID(opening_reference))
         except (ValueError, TypeError, AttributeError):
             raise ValueError("Invalid opening balance reference. Reload the workspace and try again.") from None
     elif opening_reference is not None or opening_note is not None:
         raise ValueError("Opening details require the opening_balance source type.")
-    if expiry_date < business_today():
+    if expiry_date < today:
         raise ValueError("Expiry date cannot be in the past.")
 
     with get_transaction_cursor() as cur:
         if is_opening:
             cur.execute("SELECT pg_advisory_xact_lock(hashtextextended(%s, 0))", (f"opening:{reference}",))
             cur.execute("""SELECT b.batch_id AS product_batch_id, b.item_id AS product_id,
-                b.batch_code, b.quantity_received, b.expiry_date, m.note, m.actor_account_id
+                b.batch_code, b.batch_date, b.quantity_received, b.expiry_date, m.note, m.actor_account_id
                 FROM inventory_batches b JOIN inventory_movements m ON m.affected_batch_id=b.batch_id
                 AND m.movement_type='opening_balance' WHERE b.opening_reference=%s""", (reference,))
             existing = cur.fetchone()
             if existing:
-                if (existing["product_id"] != product_id or existing["batch_code"] != clean_batch_code
+                if (existing["product_id"] != product_id or existing["batch_code"].strip().lower() != clean_batch_code.lower()
+                        or (batch_date is not None and existing["batch_date"] != clean_batch_date)
                         or existing["quantity_received"] != clean_quantity or existing["expiry_date"] != expiry_date
                         or existing["note"] != note or existing["actor_account_id"] != actor_account_id):
                     raise ValueError("This opening balance reference was already used for different details. Reload the workspace.")
@@ -375,14 +394,14 @@ def add_product_batch(
             raise ValueError("Unknown product")
         actor_name = _inventory_actor_name(cur, actor_account_id)
         cur.execute("""
-            INSERT INTO inventory_batches (item_id, batch_code, source_type, quantity_received, quantity_available, unit, received_date, expiry_date, quality_status, opening_reference)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 'approved', %s)
-            ON CONFLICT (batch_code) DO NOTHING
-            RETURNING batch_id AS product_batch_id, item_id AS product_id, batch_code, source_type, quantity_received, quantity_available, unit, received_date, expiry_date, quality_status;
-        """, (product_id, clean_batch_code, source_type, clean_quantity, clean_quantity, product["unit"], business_today(), expiry_date, reference))
+            INSERT INTO inventory_batches (item_id, batch_code, batch_date, source_type, quantity_received, quantity_available, unit, received_date, expiry_date, quality_status, opening_reference)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, 'approved', %s)
+            ON CONFLICT (item_id, batch_date, lower(btrim(batch_code))) DO NOTHING
+            RETURNING batch_id AS product_batch_id, item_id AS product_id, batch_code, batch_date, source_type, quantity_received, quantity_available, unit, received_date, expiry_date, quality_status;
+        """, (product_id, clean_batch_code, clean_batch_date, source_type, clean_quantity, clean_quantity, product["unit"], today, expiry_date, reference))
         batch = cur.fetchone()
         if batch is None:
-            raise ValueError("Batch code already exists. Enter a different batch code.")
+            raise ValueError("Batch number already exists for this product and batch date. Choose a different number or date.")
         _insert_inventory_movement(
             cur,
             item_id=product_id,

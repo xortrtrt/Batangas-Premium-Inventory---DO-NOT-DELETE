@@ -1,0 +1,90 @@
+<div class="inventory-product-card-grid supplies-item-grid">
+  {% for item in supply_items %}
+  <article class="inventory-product-card supplies-item-card">
+    <div
+      class="supplies-card-photo {{ 'supplies-card-photo--placeholder' if not item.has_image else '' }}"
+    >
+      <img
+        src="{{ supply_photo(item) }}"
+        alt="{{ item.name }}"
+        width="480"
+        height="300"
+        loading="lazy"
+      /><span
+        class="supplies-stock-badge {{ 'is-empty' if item.quantity_available == 0 else '' }}"
+        ><span aria-hidden="true"></span>{{ 'Out of stock' if
+        item.quantity_available == 0 else 'In stock' }}</span
+      >
+    </div>
+    <div class="supplies-card-content">
+      <span class="supplies-category">{{ item.category }}</span>
+      <h4>{{ item.name }}</h4>
+      <div class="supplies-item-balance">
+        <div>
+          <small>Available balance</small
+          ><strong
+            >{{ item.quantity_available|stock_quantity }} {{ item.unit if
+            item.quantity_available == 1 else supply_unit_labels[item.unit]
+            }}</strong
+          >
+        </div>
+      </div>
+      <div class="supplies-card-actions">
+        <a
+          class="supplies-card-action supplies-in"
+          href="/portal/{{ role_key }}/supplies-manage?modal=stock_in&amp;item={{ item.supply_id }}"
+          ><i data-lucide="arrow-down-to-line" aria-hidden="true"></i>Stock
+          in</a
+        ><a
+          class="supplies-card-action supplies-out"
+          href="/portal/{{ role_key }}/supplies-manage?modal=stock_out&amp;item={{ item.supply_id }}"
+          ><i data-lucide="arrow-up-from-line" aria-hidden="true"></i>Stock
+          out</a
+        >
+      </div>
+      {% if supply_tab == 'photos' %}
+      <details class="supplies-card-photo-editor">
+        <summary>
+          <i data-lucide="camera" aria-hidden="true"></i>{{ 'Change photo' if
+          item.has_image else 'Add photo' }}
+        </summary>
+        <form
+          novalidate
+          method="post"
+          enctype="multipart/form-data"
+          action="/portal/inventory/supplies/{{ item.supply_id }}/image"
+        >
+          <input
+            type="hidden"
+            name="csrf_token"
+            value="{{ csrf_token(request) }}"
+          />{{ photo_input('supply-image-' ~ item.supply_id, true) }}<button
+            class="button subtle"
+            type="submit"
+          >
+            Save photo
+          </button>
+        </form>
+      </details>
+      {% endif %}
+    </div>
+  </article>
+  {% else %}
+  <div class="supplies-empty">
+    <i data-lucide="package-open" aria-hidden="true"></i>
+    <h3>
+      {{ 'No matching supplies' if supply_q else 'Start your supplies inventory'
+      }}
+    </h3>
+    <p>
+      {{ 'Try another item name or category.' if supply_q else 'Create your
+      first packaging or supply item to start tracking stock.' }}
+    </p>
+    {% if not supply_q %}<a
+      class="button primary"
+      href="/portal/{{ role_key }}/supplies-manage?modal=create"
+      >Create supply item</a
+    >{% endif %}
+  </div>
+  {% endfor %}
+</div>

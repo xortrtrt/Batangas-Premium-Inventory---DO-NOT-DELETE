@@ -1,3 +1,10 @@
+{% macro batch_identity_fields(today, prefix) -%}
+<div class="form-grid">
+  <label>Batch number <input type="text" required name="batch_code" maxlength="100" placeholder="Batch-001" /></label>
+  <label>Batch date <input type="date" required name="batch_date" value="{{ today }}" max="{{ today }}" /></label>
+</div>
+
+{%- endmacro %}
 {% macro metric(label,value,icon,featured=false,tone='neutral',unit='packs') -%}
 <div class="lifecycle-metric {{ 'is-featured' if featured else '' }} tone-{{ tone }}"><span class="lifecycle-metric-label"><i data-lucide="{{ icon }}" aria-hidden="true"></i>{{ label }}</span><strong>{{ value|number }}<small>{{ 'batch' if unit == 'batches' and value == 1 else unit }}</small></strong></div>
 {%- endmacro %}

@@ -1,0 +1,23 @@
+services:
+  web:
+    # Local development only: keep the running container on the edited source.
+    volumes:
+      - ./app:/app/app
+    environment:
+      DEV_LIVE_RELOAD: "1"
+      WATCHFILES_FORCE_POLLING: "true"
+      WATCHFILES_POLL_DELAY_MS: "500"
+    command:
+      - --reload
+      - --reload-dir
+      - /app/app
+      - --reload-include
+      - "*.py"
+      - --reload-include
+      - "*.html"
+      - --reload-include
+      - "*.css"
+      - --reload-include
+      - "*.js"
+      - --reload-include
+      - "*.svg"

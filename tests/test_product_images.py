@@ -1,5 +1,7 @@
 import base64
 import re
+from io import BytesIO
+from PIL import Image
 
 import pytest
 from fastapi.testclient import TestClient
@@ -11,14 +13,33 @@ from app.security import hash_password
 from app.uploads import validate_product_image
 
 
-PNG = base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wl6rS8AAAAASUVORK5CYII=')
+PNG = base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAFklEQVR4nGP8f52BgYGBiYGBgYGBAQAXMQHanC5ZcwAAAABJRU5ErkJggg==')
 
 
 @pytest.mark.parametrize('mime,content', [('image/svg+xml', b'<svg/>'), ('image/png', b'not an image'),
-                                        ('image/jpeg', b''), ('image/png', PNG + b'x' * 2097152)])
+                                        ('image/jpeg', b''), ('image/png', PNG + b'x' * 2097152),
+                                        ('image/jpeg', b'\xff\xd8\xff'), ('image/png', b'\x89PNG\r\n\x1a\n'),
+                                        ('image/png', base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wl6rS8AAAAASUVORK5CYII='))],
+                         ids=['svg', 'invalid-png', 'empty', 'oversized', 'truncated-jpeg', 'png-header', 'corrupt-png'])
 def test_reject_invalid_product_images(mime, content):
     with pytest.raises(ValueError, match='Product image'):
         validate_product_image(mime, content)
+
+
+def test_product_images_decode_pixels_and_match_declared_format(monkeypatch):
+    from app import uploads
+    for fmt, mime in [('PNG', 'image/png'), ('JPEG', 'image/jpeg'), ('WEBP', 'image/webp')]:
+        output = BytesIO()
+        Image.new('RGB', (12, 12), 'gold').save(output, format=fmt)
+        content = output.getvalue()
+        validate_product_image(mime, content)
+        with pytest.raises(ValueError, match='valid JPG'):
+            validate_product_image(mime, content[:len(content)//2])
+        with pytest.raises(ValueError, match='valid JPG'):
+            validate_product_image('image/jpeg' if fmt != 'JPEG' else 'image/png', content)
+    monkeypatch.setattr(uploads, 'PRODUCT_IMAGE_MAX_PIXELS', 100)
+    with pytest.raises(ValueError, match='16 megapixels'):
+        validate_product_image('image/webp', content)
 
 
 def test_recipe_image_upload_auth_validation_and_display(inventory_db):

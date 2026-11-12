@@ -11,7 +11,7 @@
     </span>
   </div>
   <div class="inventory-product-card-copy">
-    <span class="reseller-product-category">{{ product.category }}</span>
+    <span class="inventory-product-category">{{ product.category }}</span>
     <h3><a class="inventory-product-detail-link" href="/portal/inventory/{{ 'package-details' if is_package else 'product-details' }}?product_id={{ product.item_id }}">{{ product.name }} <span aria-hidden="true">&rarr;</span></a></h3>
     <div class="inventory-product-stats">
       <div class="inventory-product-stat">

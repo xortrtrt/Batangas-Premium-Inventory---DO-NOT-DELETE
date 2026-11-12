@@ -1,3 +1,4 @@
+{% from 'portals/inventory/_stock_components.html' import batch_identity_fields %}
 <section class="inventory-workspace" aria-labelledby="inventory-workspace-title">
   <header class="inventory-workspace-header">
     <div>
@@ -91,7 +92,7 @@
   <section class="inventory-modal-card inventory-modal-card--compact" role="dialog" aria-modal="true" aria-labelledby="inventory-modal-opening-balance-title" tabindex="-1">
     <header class="inventory-modal-head">
       <span class="inventory-modal-icon"><i data-lucide="package-plus"></i></span>
-      <div><span class="eyebrow">Finished goods</span><h2 id="inventory-modal-opening-balance-title">Add opening balance</h2><p>Add existing stock without using raw materials. Use a separate entry for each batch.</p></div>
+      <div><span class="eyebrow">Finished goods</span><h2 id="inventory-modal-opening-balance-title">Add opening balance</h2></div>
       <button class="icon-button" type="button" aria-label="Close opening balance" data-inventory-modal-close><i data-lucide="x"></i></button>
     </header>
     <div class="inventory-modal-body">
@@ -99,13 +100,11 @@
         <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}" />
         <input type="hidden" name="submission_reference" value="{{ opening_reference }}" />
         <label>Finished product <select name="product_id" required><option value="">Choose a finished product</option>{% for product in products %}<option value="{{ product.product_id }}">{{ product.name }}</option>{% endfor %}</select></label>
-        <div class="form-grid">
-          <label>Batch code <input required name="batch_code" maxlength="100" placeholder="OPEN-001" /></label>
-          <label>Opening quantity (packs) <input required name="quantity" type="number" min="1" max="999999999" step="1" /></label>
-        </div>
+        {{ batch_identity_fields(batch_today, 'opening') }}
+        <label>Opening quantity (packs) <input required name="quantity" type="number" min="1" max="999999999" step="1" /></label>
         <label>Expiry date <input required name="expiry_date" type="date" /></label>
         <label>Opening balance note <textarea required name="note" maxlength="500" placeholder="Existing stock counted before using the inventory system"></textarea></label>
-        <p class="hint">This adds to the current balance. It does not replace existing stock.</p>
+
         <footer class="inventory-modal-actions"><button class="button subtle" type="button" data-inventory-modal-close>Cancel</button><button class="button primary" type="submit" {{ 'disabled' if not products else '' }}><i data-lucide="package-plus"></i> Save opening balance</button></footer>
       </form>
     </div>
@@ -117,7 +116,7 @@
   <section class="inventory-modal-card inventory-modal-card--compact" role="dialog" aria-modal="true" aria-labelledby="inventory-modal-deduct-material-title" tabindex="-1">
     <header class="inventory-modal-head">
       <span class="inventory-modal-icon"><i data-lucide="package-minus"></i></span>
-      <div><span class="eyebrow">Material stock out</span><h2 id="inventory-modal-deduct-material-title">Deduct raw materials</h2><p>Record a manual deduction with its reason.</p></div>
+      <div><span class="eyebrow">Material stock out</span><h2 id="inventory-modal-deduct-material-title">Deduct raw materials</h2></div>
       <button class="icon-button" type="button" aria-label="Close deduct raw materials" data-inventory-modal-close><i data-lucide="x"></i></button>
     </header>
     <div class="inventory-modal-body">
@@ -129,9 +128,9 @@
           {% for material in raw_materials %}<option value="{{ material.raw_material_id }}" data-stock-unit="{{ material.unit }}" data-stock-available="{{ material.available }}">{{ material.name }} ({{ material.unit }}) — {{ material.available|stock_quantity }} {{ material.unit }} available</option>{% endfor %}
         </select></label>
         <label>Quantity to deduct <input required type="number" min="0.001" step="0.001" name="quantity" inputmode="decimal" aria-describedby="raw-deduction-unit" /></label>
-        <p class="hint" id="raw-deduction-unit" data-deduction-unit aria-live="polite">Select a material to see its stock unit and available balance.</p>
+        <p class="hint" id="raw-deduction-unit" data-deduction-unit aria-live="polite"></p>
         <label>Deduction reason <textarea required name="note" maxlength="500" rows="3" placeholder="For example: spoiled stock, damaged packaging, or wastage"></textarea></label>
-        <p class="hint">Your account, reason, date, and before/after balances are recorded. Production already deducts recipe ingredients automatically; use this form only for additional stock out.</p>
+
         {% if not raw_materials %}<p class="hint">No raw materials are available. Add a raw material and its starting stock first.</p>{% endif %}
         <footer class="inventory-modal-actions"><button class="button subtle" type="button" data-inventory-modal-close>Cancel</button><button class="button primary" type="submit" {{ 'disabled' if not raw_materials else '' }}><i data-lucide="package-minus"></i> Deduct raw material</button></footer>
       </form>
@@ -144,7 +143,7 @@
   <section class="inventory-modal-card inventory-modal-card--compact" role="dialog" aria-modal="true" aria-labelledby="inventory-modal-dispatch-stock-title" tabindex="-1">
     <header class="inventory-modal-head">
       <span class="inventory-modal-icon"><i data-lucide="truck"></i></span>
-      <div><span class="eyebrow">Stock out</span><h2 id="inventory-modal-dispatch-stock-title">Deduct Stock</h2><p>Approved, unexpired batches are used in expiry order.</p></div>
+      <div><span class="eyebrow">Stock out</span><h2 id="inventory-modal-dispatch-stock-title">Deduct Stock</h2></div>
       <button class="icon-button" type="button" aria-label="Close dispatch stock" data-inventory-modal-close><i data-lucide="x"></i></button>
     </header>
     <div class="inventory-modal-body">
@@ -154,7 +153,7 @@
         <label>Finished product <select name="product_id" required><option value="">Choose a product</option>{% for product in products %}<option value="{{ product.product_id }}">{{ product.name }} — {{ product.available|number }} packs available</option>{% endfor %}</select></label>
         <label>Quantity (packs) <input required type="number" min="1" step="1" name="quantity" inputmode="numeric" /></label>
         <label>Dispatch note <textarea required name="note" maxlength="500" rows="3" placeholder="Where the packs are going or why they are leaving"></textarea></label>
-        <p class="hint">Confirm the quantity before recording. Each deduction is saved in the stock movement history.</p>
+
         <footer class="inventory-modal-actions"><button class="button subtle" type="button" data-inventory-modal-close>Cancel</button><button class="button primary" type="submit"><i data-lucide="truck"></i> Deduct stock</button></footer>
       </form>
     </div>
@@ -166,7 +165,7 @@
   <section class="inventory-modal-card" role="dialog" aria-modal="true" aria-labelledby="inventory-modal-add-material-title" tabindex="-1">
     <header class="inventory-modal-head">
       <span class="inventory-modal-icon"><i data-lucide="package-plus"></i></span>
-      <div><span class="eyebrow">Raw materials</span><h2 id="inventory-modal-add-material-title">Add raw material</h2><p>Create a new raw inventory item and its starting stock.</p></div>
+      <div><span class="eyebrow">Raw materials</span><h2 id="inventory-modal-add-material-title">Add raw material</h2></div>
       <button class="icon-button" type="button" aria-label="Close add raw material" data-inventory-modal-close><i data-lucide="x"></i></button>
     </header>
     <div class="inventory-modal-body">
@@ -193,7 +192,7 @@
   <section class="inventory-modal-card inventory-modal-card--compact" role="dialog" aria-modal="true" aria-labelledby="inventory-modal-add-quantity-title" tabindex="-1">
     <header class="inventory-modal-head">
       <span class="inventory-modal-icon"><i data-lucide="plus"></i></span>
-      <div><span class="eyebrow">Stock intake</span><h2 id="inventory-modal-add-quantity-title">Add quantity</h2><p>Increase stock for an existing raw material.</p></div>
+      <div><span class="eyebrow">Stock intake</span><h2 id="inventory-modal-add-quantity-title">Add quantity</h2></div>
       <button class="icon-button" type="button" aria-label="Close add quantity" data-inventory-modal-close><i data-lucide="x"></i></button>
     </header>
     <div class="inventory-modal-body">
@@ -214,7 +213,7 @@
   <section class="inventory-modal-card inventory-modal-card--wide" role="dialog" aria-modal="true" aria-labelledby="inventory-modal-create-recipe-title" tabindex="-1">
     <header class="inventory-modal-head">
       <span class="inventory-modal-icon"><i data-lucide="notebook-tabs"></i></span>
-      <div><span class="eyebrow">Product setup</span><h2 id="inventory-modal-create-recipe-title">Create product recipe</h2><p>Define a finished product and the raw materials required per pack.</p></div>
+      <div><span class="eyebrow">Product setup</span><h2 id="inventory-modal-create-recipe-title">Create product recipe</h2></div>
       <button class="icon-button" type="button" aria-label="Close create product recipe" data-inventory-modal-close><i data-lucide="x"></i></button>
     </header>
     <div class="inventory-modal-body">
@@ -227,14 +226,14 @@
           <div class="recipe-image-upload__preview"><i data-lucide="image-plus" aria-hidden="true"></i><img data-product-image-preview alt="Selected product image preview" hidden /></div>
           <div class="recipe-image-upload__controls">
             <label for="recipe-product-image">Product image <span class="hint">Optional</span></label>
-            <small id="recipe-image-help">Add a photo for the product card. JPG, PNG, or WebP · up to 2 MB.</small>
-            <input id="recipe-product-image" name="product_image" type="file" accept="image/jpeg,image/png,image/webp" aria-describedby="recipe-image-help recipe-image-status" data-product-image-input />
+
+            <input id="recipe-product-image" name="product_image" type="file" accept="image/jpeg,image/png,image/webp" aria-describedby="recipe-image-status" data-product-image-input />
             <span id="recipe-image-status" class="hint" role="status" data-product-image-status>No image selected.</span>
             <button class="button subtle" type="button" data-product-image-clear hidden>Remove image</button>
           </div>
         </div>
         <div class="inventory-form-section-head">
-          <div><strong>Ingredients per pack</strong><small>Add every material used by one finished pack.</small></div>
+          <div><strong>Ingredients per pack</strong></div>
           <button class="button subtle" type="button" id="add-ingredient" data-add-ingredient><i data-lucide="plus"></i> Add ingredient</button>
         </div>
         <div class="recipe-rows" id="recipe-rows" data-recipe-rows>
@@ -259,16 +258,14 @@
   <section class="inventory-modal-card" role="dialog" aria-modal="true" aria-labelledby="inventory-modal-produce-product-title" tabindex="-1">
     <header class="inventory-modal-head">
       <span class="inventory-modal-icon"><i data-lucide="factory"></i></span>
-      <div><span class="eyebrow">Production</span><h2 id="inventory-modal-produce-product-title">Produce product</h2><p>Create a batch and deduct raw materials using its recipe.</p></div>
+      <div><span class="eyebrow">Production</span><h2 id="inventory-modal-produce-product-title">Produce product</h2></div>
       <button class="icon-button" type="button" aria-label="Close produce product" data-inventory-modal-close><i data-lucide="x"></i></button>
     </header>
     <div class="inventory-modal-body">
       <form class="form-panel bare inventory-modal-form" action="/portal/inventory/production" method="post">
         <label>Product <select name="product_id" required>{% for product in products %}<option value="{{ product.product_id }}">{{ product.name }}{% if product.recipe_count == 0 %} (no recipe){% endif %}</option>{% endfor %}</select></label>
-        <div class="form-grid">
-          <label>Output batch <input required name="batch_code" placeholder="PGL-0710-A" /></label>
-          <label>Packs produced <input required type="number" min="1" step="1" name="quantity" /></label>
-        </div>
+        {{ batch_identity_fields(batch_today, 'production') }}
+        <label>Packs produced <input required type="number" min="1" step="1" name="quantity" /></label>
         <label>Expiry date <input required type="date" name="expiry_date" /></label>
         <footer class="inventory-modal-actions">
           <button class="button subtle" type="button" data-inventory-modal-close>Cancel</button>
@@ -284,7 +281,7 @@
   <section class="inventory-modal-card inventory-modal-card--wide" role="dialog" aria-modal="true" aria-labelledby="inventory-modal-product-recipes-title" tabindex="-1">
     <header class="inventory-modal-head">
       <span class="inventory-modal-icon"><i data-lucide="book-open-text"></i></span>
-      <div><span class="eyebrow">Recipe library</span><h2 id="inventory-modal-product-recipes-title">Product recipes</h2><p>Customize the ingredients required for each finished product.</p></div>
+      <div><span class="eyebrow">Recipe library</span><h2 id="inventory-modal-product-recipes-title">Product recipes</h2></div>
       <button class="icon-button" type="button" aria-label="Close product recipes" data-inventory-modal-close><i data-lucide="x"></i></button>
     </header>
     <div class="inventory-modal-body product-recipes-panel">
@@ -315,7 +312,7 @@
             <input type="hidden" name="q" value="{{ recipe_products_page.filters.q }}" />
             <input type="hidden" name="page" value="{{ recipe_products_page.pagination.page }}" />
             <div class="inventory-form-section-head">
-              <div><strong>{{ "Customize recipe" if recipe_rows else "Add recipe" }}</strong><small>Ingredients needed for one finished pack. Changes apply to future production.</small></div>
+              <div><strong>{{ "Customize recipe" if recipe_rows else "Add recipe" }}</strong></div>
               <button class="button subtle" type="button" data-add-ingredient>Add ingredient</button>
             </div>
             <div class="recipe-rows" data-recipe-rows>

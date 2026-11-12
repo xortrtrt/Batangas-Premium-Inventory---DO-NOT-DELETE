@@ -84,7 +84,7 @@ def test_dispatch_fefo_expiry_and_audit(stock):
     rejected = add_product_batch(product, "REJECTED", "20", business_today(), actor_account_id=actor)
     with psycopg2.connect(dsn) as conn:
         with conn.cursor() as cur:
-            cur.execute("UPDATE inventory_batches SET received_date=CURRENT_DATE-2, expiry_date=CURRENT_DATE-1 WHERE batch_id=%s",
+            cur.execute("UPDATE inventory_batches SET batch_date=CURRENT_DATE-2, received_date=CURRENT_DATE-2, expiry_date=CURRENT_DATE-1 WHERE batch_id=%s",
                         (expired["product_batch_id"],))
             cur.execute("UPDATE inventory_batches SET quality_status='rejected' WHERE batch_id=%s", (rejected["product_batch_id"],))
     ref = str(uuid4())

@@ -14,8 +14,166 @@ from app.database import fetch_one
 
 from app import repositories as data
 from app.portals import shared
+from app.repositories.inventory import supplies
+from app.business_time import business_today
 
 router = APIRouter()
+
+
+def supplies_context(request: Request):
+    section = request.path_params.get('section', 'supplies')
+    supply_view = {'supplies-manage': 'manage', 'supplies-movements': 'movements'}.get(section, 'stocks')
+    tab = request.query_params.get('modal', request.query_params.get('tab', '')) if supply_view == 'manage' else (
+        'daily' if supply_view == 'movements' else 'items')
+    draft_id = request.query_params.get('draft', '') if tab in {'stock', 'stock_in', 'stock_out'} else ''
+    draft = request.session.get('supply_stock_drafts', {}).get(draft_id, {})
+    if tab == 'stock':
+        tab = 'stock_in'
+    if draft.get('movement_type') in {'stock_in', 'stock_out'}:
+        tab = draft['movement_type']
+    if supply_view == 'manage' and tab not in {'create', 'photos', 'stock_in', 'stock_out'}:
+        tab = ''
+    today = business_today()
+    selected_day = None if supply_view == 'movements' else today
+    if supply_view == 'movements' and request.query_params.get('date'):
+        try:
+            selected_day = date.fromisoformat(request.query_params.get('date', today.isoformat()))
+            if selected_day > today:
+                raise ValueError
+        except ValueError:
+            raise HTTPException(status_code=400, detail='Choose today or a valid past date.') from None
+    q = request.query_params.get('q', '').strip()[:120]
+    kind = request.query_params.get('type', '')
+    kind = kind if kind in {'opening', 'stock_in', 'stock_out'} else ''
+    sort = request.query_params.get('sort', '')
+    sort = sort if sort in {'oldest', 'actor_asc'} else ''
+    requested_page = shared.positive_int(request.query_params.get('page'), maximum=1000000)
+    rows = (supplies.supply_movements_page(selected_day, q, kind, sort, requested_page)
+            if supply_view == 'movements' else supplies.supplies_page(selected_day, q, requested_page))
+    page = shared.paged(rows['items'], rows['total'], rows['page'], 12, q=q)
+    if supply_view == 'movements':
+        first_page = max(1, min(page['pagination']['page'] - 2, page['pagination']['total_pages'] - 4))
+        page['pagination']['page_numbers'] = list(range(
+            first_page, min(page['pagination']['total_pages'], first_page + 4) + 1))
+    draft_expired = bool(draft_id and not draft)
+    if draft_expired:
+        draft = {'movement_type': ''}
+    return {'supply_view': supply_view, 'supply_tab': tab, 'supply_active_modal': tab if supply_view == 'manage' else '',
+            'supply_day': selected_day, 'supply_today': today,
+            'supplies_page': page, 'supply_items': rows['items'],
+            'supply_kind': kind, 'supply_sort': sort,
+            'supply_movement_categories': (('', 'All movements'), ('opening', 'Opening'),
+                                           ('stock_in', 'Stock in'), ('stock_out', 'Stock out')),
+            'supply_choices': supplies.supply_choices() if supply_view == 'manage' else [],
+            'supply_units': supplies.SUPPLY_UNITS, 'supply_unit_labels': {k: v.lower() for k,v in supplies.SUPPLY_UNITS}, 'supply_q': q,
+            'supply_create_reference': str(uuid4()), 'supply_movement_reference': str(uuid4()),
+            'supply_movement_references': {kind: str(uuid4()) for kind in ('stock_in', 'stock_out')},
+            'supply_draft': draft, 'supply_draft_id': draft_id if draft and not draft_expired else '',
+            'supply_draft_expired': draft_expired,
+            'supply_selected_id': draft.get('supply_id', '') if draft else request.query_params.get('item', '')}
+
+
+shared.PORTAL_SECTION_LOADERS[('inventory', 'supplies')] = supplies_context
+shared.PORTAL_SECTION_LOADERS[('inventory', 'supplies-manage')] = supplies_context
+shared.PORTAL_SECTION_LOADERS[('inventory', 'supplies-movements')] = supplies_context
+
+
+async def _supply_upload(form, required=False):
+    upload = form.get('supply_image')
+    if isinstance(upload, UploadFile) and upload.filename:
+        try:
+            content = await upload.read(PROFILE_IMAGE_MAX_BYTES + 1)
+            await run_in_threadpool(supplies.validate_supply_image, upload.content_type, content)
+            return (upload.content_type, content)
+        finally:
+            await upload.close()
+    if required or (upload and not isinstance(upload, UploadFile)):
+        raise ValueError('Choose a supply image to upload.')
+    return None
+
+
+@router.get('/portal/inventory/supplies/{supply_id}/image')
+def supply_image(request: Request, supply_id: int):
+    guard = shared.require_portal_session(request)
+    if guard:
+        return guard
+    if not 0 < supply_id <= 9223372036854775807:
+        raise HTTPException(status_code=404, detail='Supply image not found.')
+    image = fetch_one('SELECT content_type,image_data FROM inventory_supply_images WHERE supply_id=%s', (supply_id,))
+    if image is None:
+        raise HTTPException(status_code=404, detail='Supply image not found.')
+    return Response(bytes(image['image_data']), media_type=image['content_type'], headers={'Cache-Control': 'private, no-cache'})
+
+
+@router.post('/portal/inventory/supplies/{supply_id}/image')
+async def upload_supply_image(request: Request, supply_id: int):
+    guard = await run_in_threadpool(shared.require_portal_session, request)
+    if guard:
+        return guard
+    form = await request.form()
+    try:
+        if not 0 < supply_id <= 9223372036854775807:
+            raise ValueError('Choose a valid supply item.')
+        image = await _supply_upload(form, required=True)
+        await run_in_threadpool(supplies.save_supply_image, supply_id, image, shared.session_account_id(request))
+    except ValueError as exc:
+        return shared.redirect_to(path_with_query('/portal/inventory/supplies-manage', modal='photos', error=str(exc)))
+    return shared.redirect_to(path_with_query('/portal/inventory/supplies-manage', modal='photos', message='Supply photo updated.'))
+
+
+@router.post('/portal/inventory/supplies/items')
+async def create_supply_item(request: Request):
+    guard = await run_in_threadpool(shared.require_portal_session, request)
+    if guard:
+        return guard
+    form = await request.form()
+    try:
+        if any(form.get(key) for key in ('date', 'created_at', 'transaction_date')):
+            raise ValueError('Supplies entries use the current Manila date and time automatically.')
+        result = await run_in_threadpool(supplies.create_supply, str(form.get('name', '')),
+            str(form.get('category', '')), str(form.get('unit', '')), str(form.get('initial_quantity', '0')),
+            str(form.get('submission_reference', '')), shared.session_account_id(request), image=await _supply_upload(form))
+    except ValueError as exc:
+        return shared.redirect_to(path_with_query('/portal/inventory/supplies-manage', modal='create', error=str(exc)))
+    return shared.redirect_to(path_with_query('/portal/inventory/supplies',
+        message='Item already created.' if result['already_recorded'] else 'Supply item created. Balance is ready.'))
+
+
+@router.post('/portal/inventory/supplies/movements')
+async def create_supply_movement(request: Request):
+    guard = await run_in_threadpool(shared.require_portal_session, request)
+    if guard:
+        return guard
+    form = await request.form()
+    try:
+        if any(form.get(key) for key in ('date', 'created_at', 'transaction_date')):
+            raise ValueError('Supplies entries use the current Manila date and time automatically.')
+        try:
+            supply_id = int(str(form.get('supply_id', '')))
+        except ValueError:
+            raise ValueError('Choose a valid supply item.') from None
+        result = await run_in_threadpool(supplies.record_supply_movement, supply_id,
+            str(form.get('movement_type', '')), str(form.get('quantity', '')), str(form.get('reason', '')),
+            str(form.get('submission_reference', '')), shared.session_account_id(request))
+    except ValueError as exc:
+        drafts = dict(request.session.get('supply_stock_drafts', {}))
+        draft_id = str(uuid4())
+        # Keep drafts per failed submission, so separate browser tabs cannot
+        # accidentally pick up one another's stock direction or item.
+        drafts[draft_id] = {key: str(form.get(key, ''))[:limit] for key,limit in
+                            (('supply_id', 20), ('movement_type', 20), ('quantity', 64), ('reason', 500))}
+        while len(drafts) > 5:
+            drafts.pop(next(iter(drafts)))
+        request.session['supply_stock_drafts'] = drafts
+        error_tab = str(form.get('movement_type', ''))
+        if error_tab not in {'stock_in', 'stock_out'}:
+            error_tab = 'stock_in'
+        return shared.redirect_to(path_with_query('/portal/inventory/supplies-manage', modal=error_tab, draft=draft_id, error=str(exc)))
+    drafts = dict(request.session.get('supply_stock_drafts', {}))
+    if drafts.pop(str(form.get('draft_id', '')), None) is not None:
+        request.session['supply_stock_drafts'] = drafts
+    return shared.redirect_to(path_with_query('/portal/inventory/supplies-movements',
+        message='Movement already recorded.' if result['already_recorded'] else 'Supplies stock movement recorded. Balance updated.'))
 
 
 @router.get("/portal/inventory/products/{product_id}/image")
@@ -92,6 +250,7 @@ def finished_opening_balance(
     expiry_date: Annotated[date, Form()],
     note: Annotated[str, Form()],
     submission_reference: Annotated[str, Form()],
+    batch_date: Annotated[date | None, Form()] = None,
 ):
     guard = shared.require_portal_session(request)
     if guard:
@@ -101,6 +260,7 @@ def finished_opening_balance(
             product_id, batch_code, quantity, expiry_date, source_type="opening_balance",
             actor_account_id=shared.session_account_id(request), opening_note=note,
             opening_reference=submission_reference,
+            batch_date=batch_date,
         )
     except ValueError as exc:
         return shared.redirect_to(shared.safe_portal_path("inventory", "inventory", modal="opening-balance", error=str(exc)))
@@ -338,6 +498,7 @@ def inventory_context(request: Request) -> dict:
     recipe_products_page = shared.product_page(request, page_size=8)
     recipe_product_ids = [product["product_id"] for product in recipe_products_page["items"]]
     return {
+        "batch_today": business_today(),
         "opening_reference": str(uuid4()),
         "dispatch_reference": str(uuid4()),
         "raw_deduction_reference": str(uuid4()),
@@ -499,7 +660,7 @@ async def create_product(request: Request):
         image_content = None
         if isinstance(image, UploadFile) and image.filename:
             content = await image.read(PROFILE_IMAGE_MAX_BYTES + 1)
-            validate_product_image(image.content_type, content)
+            await run_in_threadpool(validate_product_image, image.content_type, content)
             image_content = (image.content_type, content)
         elif image and not isinstance(image, UploadFile):
             raise ValueError("Choose a product image file.")
@@ -541,12 +702,13 @@ async def save_product_recipe(request: Request, product_id: int):
 
 @router.post("/portal/inventory/production")
 @router.post("/portal/team-leader/production")
-async def produce_batch(
+def produce_batch(
     request: Request,
-    product_id: int = Form(...),
-    batch_code: str = Form(...),
-    quantity: str = Form(...),
-    expiry_date: date = Form(...),
+    product_id: Annotated[int, Form()],
+    batch_code: Annotated[str, Form()],
+    quantity: Annotated[str, Form()],
+    expiry_date: Annotated[date, Form()],
+    batch_date: Annotated[date | None, Form()] = None,
 ):
     guard = shared.require_portal_session(request)
     if guard:
@@ -558,6 +720,7 @@ async def produce_batch(
             quantity,
             expiry_date,
             actor_account_id=shared.session_account_id(request),
+            batch_date=batch_date,
         )
     except ValueError as exc:
         return shared.redirect_to(shared.safe_portal_path("inventory", "inventory", error=str(exc)))
@@ -565,12 +728,13 @@ async def produce_batch(
 
 @router.post("/portal/inventory/batches")
 @router.post("/portal/team-leader/batches")
-async def register_direct_batch(
+def register_direct_batch(
     request: Request,
-    product_id: int = Form(...),
-    batch_code: str = Form(...),
-    quantity: str = Form(...),
-    expiry_date: date = Form(...),
+    product_id: Annotated[int, Form()],
+    batch_code: Annotated[str, Form()],
+    quantity: Annotated[str, Form()],
+    expiry_date: Annotated[date, Form()],
+    batch_date: Annotated[date | None, Form()] = None,
 ):
     guard = shared.require_portal_session(request)
     if guard:
@@ -582,6 +746,7 @@ async def register_direct_batch(
             quantity,
             expiry_date,
             actor_account_id=shared.session_account_id(request),
+            batch_date=batch_date,
         )
     except ValueError as exc:
         return shared.redirect_to(shared.safe_portal_path("inventory", "batches", error=str(exc)))

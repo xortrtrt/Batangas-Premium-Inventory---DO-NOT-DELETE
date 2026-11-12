@@ -23,7 +23,7 @@ def removed_batches_page(q: str = "", page: int = 1, product_id: int | None = No
     total = fetch_one("SELECT COUNT(*) total " + source, tuple(params))["total"]
     pagination = pagination_meta(int(total), page, 10)
     items = fetch_all("""SELECT b.batch_id,b.item_id,b.batch_code,b.source_type,b.quantity_received,
-        b.received_date,b.expiry_date,b.removal_reason,b.removed_at,i.name product_name,
+        b.received_date,b.batch_date,b.expiry_date,b.removal_reason,b.removed_at,i.name product_name,
         COALESCE(NULLIF(a.username,''),a.name) removed_by,
         COALESCE((SELECT -m.quantity_delta FROM inventory_movements m
             WHERE m.affected_batch_id=b.batch_id AND m.movement_type='owner_correction'

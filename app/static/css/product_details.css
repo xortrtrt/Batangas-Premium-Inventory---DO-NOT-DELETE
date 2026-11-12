@@ -1175,12 +1175,6 @@
   }
 }
 
-/* Sales return review: consistent gutters for totals, notices, and case forms. */
-.sales-returns-page .lifecycle-hero{
-  align-items:flex-start;
-  flex-wrap:wrap
-}
-
 .role-team-leader .inventory-items-browser{
   display: grid;
   gap: 18px;
@@ -1379,7 +1373,7 @@
   height: 14px;
 }
 
-.role-team-leader .inventory-product-card--package .reseller-product-category,
+.role-team-leader .inventory-product-card--package .inventory-product-category,
 .role-team-leader .inventory-product-card--package .inventory-product-content > svg{
   color: var(--package-accent);
 }
@@ -1396,7 +1390,7 @@
   padding: 18px;
 }
 
-.role-team-leader .inventory-product-card-copy .reseller-product-category{
+.role-team-leader .inventory-product-card-copy .inventory-product-category{
   justify-self: start;
   color: var(--gold-deep);
   font-size: 0.72rem;
@@ -1682,7 +1676,6 @@
   .batch-removal-notice-icon { width: 32px; height: 32px; }
   .batch-removal-actions .batch-removal-submit { width: 100%; justify-content: center; }
 }
-
 
 /* Removed batch archive: a compact ledger within the inventory theme. */
 .removed-batch-shortcut { display:flex; justify-content:flex-end; padding:16px 24px 0; }

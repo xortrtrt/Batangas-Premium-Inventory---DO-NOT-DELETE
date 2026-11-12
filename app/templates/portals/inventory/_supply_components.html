@@ -1,0 +1,65 @@
+{% macro supply_photo(item) -%}{% if item.has_image
+%}/portal/inventory/supplies/{{ item.supply_id }}/image{% else
+%}/static/img/supplies-stockroom.svg{% endif %}{%- endmacro %} {% macro
+photo_input(id, required=false) %}
+<div class="supplies-photo-upload" data-product-image-upload>
+  <div class="supplies-photo-preview">
+    <i data-lucide="image-plus" aria-hidden="true"></i
+    ><img
+      data-product-image-preview
+      alt="Selected supply photo preview"
+      hidden
+    />
+  </div>
+  <div class="supplies-photo-controls">
+    <label for="{{ id }}"
+      >Item photo {% if not required %}<small>Optional</small>{% endif %}</label
+    ><input
+      id="{{ id }}"
+      type="file"
+      name="supply_image"
+      {%
+      if
+      required
+      %}required{%
+      endif
+      %}
+      accept="image/jpeg,image/png,image/webp"
+      data-product-image-input
+    /><span class="hint" role="status" data-product-image-status
+      >No photo selected.</span
+    ><button
+      type="button"
+      class="button subtle"
+      data-product-image-clear
+      hidden
+    >
+      Clear selection
+    </button>
+  </div>
+</div>
+{% endmacro %} {% macro supply_pagination(tab=supply_tab) %} {% if tab in
+['items', 'photos', 'daily'] and supplies_page.pagination.total_pages > 1 %}
+<nav class="stock-pagination" aria-label="Supplies pages">
+  <span
+    class="stock-pagination__summary"
+    >Page {{ supplies_page.pagination.page }} of {{
+    supplies_page.pagination.total_pages }}</span
+  >
+  <div class="stock-pagination__controls">
+    {% if supplies_page.pagination.has_prev %}<a
+      class="{{ 'stock-page stock-page--step' if tab == 'daily' else 'button subtle' }}"
+      href="?{% if tab == 'photos' %}modal=photos&amp;{% elif tab == 'daily' %}date={{ supply_day or '' }}&amp;type={{ supply_kind|urlencode }}&amp;sort={{ supply_sort|urlencode }}&amp;{% endif %}q={{ supply_q|urlencode }}&amp;page={{ supplies_page.pagination.page - 1 }}"
+      >Previous</a
+    >{% endif %}{% if tab == 'daily' %}{% for page_number in supplies_page.pagination.page_numbers %}
+    <a class="stock-page {{ 'is-current' if page_number == supplies_page.pagination.page else '' }}"
+       href="?date={{ supply_day or '' }}&amp;type={{ supply_kind|urlencode }}&amp;sort={{ supply_sort|urlencode }}&amp;q={{ supply_q|urlencode }}&amp;page={{ page_number }}"
+       aria-label="Page {{ page_number }}" {% if page_number == supplies_page.pagination.page %}aria-current="page"{% endif %}>{{ page_number }}</a>
+    {% endfor %}{% endif %}{% if supplies_page.pagination.has_next %}<a
+      class="{{ 'stock-page stock-page--step' if tab == 'daily' else 'button subtle' }}"
+      href="?{% if tab == 'photos' %}modal=photos&amp;{% elif tab == 'daily' %}date={{ supply_day or '' }}&amp;type={{ supply_kind|urlencode }}&amp;sort={{ supply_sort|urlencode }}&amp;{% endif %}q={{ supply_q|urlencode }}&amp;page={{ supplies_page.pagination.page + 1 }}"
+      >Next</a
+    >{% endif %}
+  </div>
+</nav>
+{% endif %} {% endmacro %}

@@ -10,23 +10,38 @@
     <meta name="theme-color" content="#8b1515" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
     <link rel="manifest" href="/static/manifest.json" />
     <link rel="icon" type="image/png" href="/static/img/batangas_premium.png" />
     <title>{{ section_title }} | {{ role.label }} | MEATTRACK</title>
     <link
       rel="stylesheet"
-      href="{{ url_for('static', path='css/portal_base.css') }}?v=20261030-material-layout-2"
+      href="{{ url_for('static', path='css/portal_base.css') }}?v=20261112-navigation-groups-1"
     />
     <link
       rel="stylesheet"
-      href="{{ url_for('static', path='css/portals/' ~ (portal_css_key|default(role_key)) ~ '.css') }}?v=20261031-product-images-1"
+      href="{{ url_for('static', path='css/portals/' ~ (portal_css_key|default(role_key)) ~ '.css') }}?v=20261111-supply-ledger-1"
     />
-    {% if section in ['finished-products', 'product-details', 'package-details', 'removed-batches'] %}
-    <link rel="stylesheet" href="{{ url_for('static', path='css/product_details.css') }}?v=20261031-reference-10" />
+    {% if section in ['finished-products', 'product-details', 'package-details',
+    'removed-batches'] %}
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', path='css/product_details.css') }}?v=20261031-reference-10"
+    />
+    {% endif %} {% if section in ['supplies', 'supplies-manage',
+    'supplies-movements'] %}
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', path='css/supplies.css') }}?v=20261111-supply-modal-layout-6"
+    />
     {% endif %}
   </head>
-  <body class="portal-body {{ portal_body_roles|default('role-' ~ role_key) }} section-{{ section }}{% if role_key in ['team-leader'] %} leader-role-{{ role.team_leader_role }}{% endif %}">
+  <body
+    class="portal-body {{ portal_body_roles|default('role-' ~ role_key) }} section-{{ section }}{% if role_key in ['team-leader'] %} leader-role-{{ role.team_leader_role }}{% endif %}"
+  >
     <button
       class="portal-drawer-backdrop"
       type="button"
@@ -60,9 +75,10 @@
         aria-label="{{ role.label }} navigation"
         data-portal-nav
       >
-        {% if nav_groups %}
-        {% for group in nav_groups %}
+        {% if nav_groups %} {% for group in nav_groups %}
+        {% if group.label %}
         <span class="portal-nav-group-label">{{ group.label }}</span>
+        {% endif %}
         {% for slug, label, icon in group["items"] %}
         <a
           class="{{ 'active' if section == slug or (section in ['product-details','package-details'] and slug == 'finished-products') or (section == 'removed-batches' and slug == 'batches') else '' }}"
@@ -71,10 +87,7 @@
           <i data-lucide="{{ icon }}"></i>
           {{ label }}
         </a>
-        {% endfor %}
-        {% endfor %}
-        {% else %}
-        {% for slug, label, icon in nav %}
+        {% endfor %} {% endfor %} {% else %} {% for slug, label, icon in nav %}
         <a
           class="{{ 'active' if section == slug or (section in ['product-details','package-details'] and slug == 'finished-products') or (section == 'removed-batches' and slug == 'batches') else '' }}"
           href="/portal/{{ role_key }}/{{ slug }}"
@@ -82,8 +95,7 @@
           <i data-lucide="{{ icon }}"></i>
           {{ label }}
         </a>
-        {% endfor %}
-        {% endif %}
+        {% endfor %} {% endif %}
       </nav>
       <div class="portal-user">
         <span class="portal-user-avatar" aria-hidden="true">
@@ -99,7 +111,12 @@
         </span>
         <span>{{ role.name }}</span>
         <small>{{ role.email }}</small>
-        <form action="/logout" method="post" class="logout-form" data-logout-form>
+        <form
+          action="/logout"
+          method="post"
+          class="logout-form"
+          data-logout-form
+        >
           <button
             class="portal-logout-button"
             type="submit"
@@ -108,7 +125,11 @@
           >
             <i data-lucide="log-out" aria-hidden="true"></i>
             <span>Sign out</span>
-            <i class="portal-logout-arrow" data-lucide="chevron-right" aria-hidden="true"></i>
+            <i
+              class="portal-logout-arrow"
+              data-lucide="chevron-right"
+              aria-hidden="true"
+            ></i>
           </button>
         </form>
       </div>
@@ -126,100 +147,51 @@
         >
           <i data-lucide="menu"></i>
         </button>
-        <div class="topbar-actions">
-          <details class="notification-menu {{ 'is-current' if section == 'notifications' else '' }}" data-notification-menu>
-            <summary
-              class="icon-button notification-trigger"
-              title="Notifications{% if unread_notifications %} ({{ unread_notifications }} unread){% endif %}"
-              aria-label="Notifications{% if unread_notifications %}, {{ unread_notifications }} unread{% endif %}"
-              aria-haspopup="true"
-              aria-expanded="false"
-              data-notification-trigger
-            >
-              <span class="notification-trigger-icon" aria-hidden="true"><i data-lucide="bell"></i></span>
-              <span class="notification-trigger-label">Notifications</span>
-              {% if unread_notifications %}
-              <span class="notification-count" aria-hidden="true">{{ '99+' if unread_notifications > 99 else unread_notifications }}</span>
-              <span class="sr-only">{{ unread_notifications }} unread notifications</span>
-              {% endif %}
-            </summary>
-            <div class="notification-panel" aria-label="Notifications" data-notification-panel>
-              <div class="notification-head">
-                <div class="notification-head-copy">
-                  <span class="eyebrow">Activity</span>
-                  <div>
-                    <strong>Notifications</strong>
-                    {% if unread_notifications %}<span>{{ unread_notifications }} unread</span>{% endif %}
-                  </div>
-                </div>
-                {% if unread_notifications %}
-                <form
-                  action="/portal/{{ role_key }}/notifications/read?section={{ section }}"
-                  method="post"
-                >
-                  <button type="submit" title="Mark all notifications as read">
-                    <i data-lucide="check-check"></i>
-                    Mark all read
-                  </button>
-                </form>
-                {% else %}
-                <span class="notification-caught-up"><i data-lucide="circle-check"></i> All caught up</span>
-                {% endif %}
-              </div>
-              <div class="notification-list">
-                {% for item in notifications %}
-                {% set item_icon = 'boxes' if item.category|lower == 'inventory' else 'circle-user-round' if item.category|lower == 'account' else 'bell' %}
-                <a
-                  class="notification-item {{ item.severity }} {{ 'is-read' if item.read_at else '' }}"
-                  href="{{ item.target_url or '/portal/' ~ role_key }}"
-                  data-notification-id="{{ item.notification_id }}"
-                >
-                  <span class="notification-item-icon"><i data-lucide="{{ item_icon }}"></i></span>
-                  <span class="notification-item-copy">
-                    <span class="notification-item-meta">
-                      <b>{{ item.category }}</b>
-                      <time datetime="{{ item.created_at }}">{{ item.created_at|nice_date }}</time>
-                    </span>
-                    <strong>{{ item.title }}</strong>
-                    <small>{{ item.message }}</small>
-                  </span>
-                  {% if not item.read_at %}<span class="notification-unread-dot" title="Unread"></span>{% endif %}
-                </a>
-                {% else %}
-                <div class="notification-empty">
-                  <span><i data-lucide="bell-ring"></i></span>
-                  <strong>You’re all caught up</strong>
-                  <small>New activity will appear here.</small>
-                </div>
-                {% endfor %}
-              </div>
-              <a class="notification-view-all" href="/portal/{{ role_key }}/notifications">
-                <span>View all notifications</span>
-                <i data-lucide="arrow-right"></i>
-              </a>
-            </div>
-          </details>
-        </div>
       </header>
       <h1 class="sr-only">{{ section_title }}</h1>
 
-      <div class="toast-region" aria-live="polite" aria-atomic="true" data-toast-region>
+      <div
+        class="toast-region"
+        aria-live="polite"
+        aria-atomic="true"
+        data-toast-region
+      >
         {% if message or error %}
         <article class="toast {{ 'error' if error else 'success' }}" data-toast>
           <span class="toast-icon">
-            <i data-lucide="{{ 'circle-alert' if error else 'circle-check' }}"></i>
+            <i
+              data-lucide="{{ 'circle-alert' if error else 'circle-check' }}"
+            ></i>
           </span>
           <div class="toast-copy">
             <strong>{{ 'Action needed' if error else 'Success' }}</strong>
             <p>{{ error or message }}</p>
           </div>
-          <button class="toast-close" type="button" aria-label="Close notification" data-toast-close>
+          <button
+            class="toast-close"
+            type="button"
+            aria-label="Close notification"
+            data-toast-close
+          >
             <i data-lucide="x"></i>
           </button>
         </article>
         {% endif %}
       </div>
-      <section data-portal-content aria-live="polite">
+      <section
+        data-portal-content
+        aria-live="polite"
+        {%
+        if
+        section
+        in
+        ['supplies', 'supplies-manage', 'supplies-movements']
+        %}
+        class="supplies-page-content"
+        {%
+        endif
+        %}
+      >
         {% block portal_content %}{% endblock %}
       </section>
     </main>
@@ -246,10 +218,14 @@
         <div class="logout-confirmation-copy">
           <span class="eyebrow">End session</span>
           <h2 id="logout-confirmation-title">Sign out of MEATTRACK?</h2>
-          <p id="logout-confirmation-description">You’ll need to sign in again to return to your portal.</p>
+          <p id="logout-confirmation-description">
+            You’ll need to sign in again to return to your portal.
+          </p>
         </div>
         <div class="logout-confirmation-actions">
-          <button class="button subtle" type="button" data-logout-close>Stay signed in</button>
+          <button class="button subtle" type="button" data-logout-close>
+            Stay signed in
+          </button>
           <button class="button danger" type="button" data-logout-confirm>
             <i data-lucide="log-out" aria-hidden="true"></i>
             <span>Sign out</span>
@@ -260,12 +236,44 @@
 
     <script src="{{ url_for('static', path='vendor/lucide-0.514.0.min.js') }}"></script>
     <script src="{{ url_for('static', path='vendor/chart-4.5.1.umd.js') }}"></script>
-    <script type="module" src="{{ url_for('static', path='js/core.js') }}?v=20261017-dynamic-csrf-2"></script>
-    <script type="module" src="{{ url_for('static', path='js/forms.js') }}?v=20261002-async-forms-1"></script>
-    <script type="module" src="{{ url_for('static', path='js/product_image_upload.js') }}?v=20261031-product-images-1"></script>
-    <script type="module" src="{{ url_for('static', path='js/portal.js') }}?v=20261030-material-layout-2"></script>
-    <script type="module" src="{{ url_for('static', path='js/profile.js') }}?v=20261001-frontend-modules-1"></script>
-    <script type="module" src="{{ url_for('static', path='js/charts.js') }}?v=20261020-inventory-dispatch"></script>
-    {% if section == 'package-details' or is_package_page|default(false) %}<script src="{{ url_for('static', path='js/package_setup.js') }}?v=20261031-dispatch-choices-2" defer></script>{% endif %}
+    <script
+      type="module"
+      src="{{ url_for('static', path='js/core.js') }}?v=20261017-dynamic-csrf-2"
+    ></script>
+    <script
+      type="module"
+      src="{{ url_for('static', path='js/forms.js') }}?v=20261111-optional-date-filter-1"
+    ></script>
+    <script
+      type="module"
+      src="{{ url_for('static', path='js/product_image_upload.js') }}?v=20261101-multiple-images-2"
+    ></script>
+    {% if section in ['supplies', 'supplies-manage', 'supplies-movements'] %}
+    <script
+      type="module"
+      src="{{ url_for('static', path='js/supplies.js') }}?v=20261111-supply-modal-units-3"
+    ></script>
+    {% endif %}
+    <script
+      type="module"
+      src="{{ url_for('static', path='js/portal.js') }}?v=20261111-flat-ledger-filters-2"
+    ></script>
+    <script
+      type="module"
+      src="{{ url_for('static', path='js/profile.js') }}?v=20261001-frontend-modules-1"
+    ></script>
+    <script
+      type="module"
+      src="{{ url_for('static', path='js/charts.js') }}?v=20261020-inventory-dispatch"
+    ></script>
+    {% if section == 'package-details' or is_package_page|default(false) %}
+    <script
+      src="{{ url_for('static', path='js/package_setup.js') }}?v=20261031-dispatch-choices-2"
+      defer
+    ></script>
+    {% endif %}
+    {% if dev_live_reload %}
+    <script type="module" src="{{ url_for('static', path='js/dev_reload.js') }}"></script>
+    {% endif %}
   </body>
 </html>

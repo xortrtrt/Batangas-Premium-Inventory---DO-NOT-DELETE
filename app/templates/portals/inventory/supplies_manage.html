@@ -1,0 +1,109 @@
+<div
+  class="supplies-workspace"
+  data-inventory-initial-modal="{{ supply_active_modal }}"
+>
+  <section class="inventory-workspace" aria-labelledby="supplies-title">
+    <header class="inventory-workspace-header">
+      <div>
+        <span class="eyebrow">Packaging &amp; supplies</span>
+        <h2 id="supplies-title">Supplies workspace</h2>
+        <p>What would you like to do?</p>
+      </div>
+      <div class="supplies-module-actions">
+        <a class="button subtle" href="/portal/{{ role_key }}/supplies"
+          ><i data-lucide="boxes" aria-hidden="true"></i>View stocks</a
+        ><a
+          class="button subtle"
+          href="/portal/{{ role_key }}/supplies-movements"
+          ><i data-lucide="arrow-left-right" aria-hidden="true"></i>View
+          movements</a
+        >
+      </div>
+    </header>
+    <div class="inventory-task-grid supplies-task-grid">
+      {% for key, title, icon, variant, description, meta in [ ('create','Create
+      supply item','package-plus','material','Create a packaging or supply item
+      and record its starting quantity.','New stock item'), ('stock_in','Add
+      stock','plus','quantity','Receive more stock or return supplies to their
+      available balance.','Existing stock item'), ('stock_out','Deduct
+      stock','package-minus','production','Record supplies issued, used, or
+      damaged.','Reason and account recorded'), ('photos','Update item
+      photos','camera','catalog','Add or change photos for your packaging and
+      supplies.','Item catalog') ] %}
+      <button
+        class="inventory-task-card inventory-task-card--{{ variant }}"
+        type="button"
+        data-inventory-modal-open="{{ key }}"
+        aria-haspopup="dialog"
+        aria-controls="inventory-modal-{{ key }}"
+      >
+        <span class="inventory-task-icon"
+          ><i data-lucide="{{ icon }}" aria-hidden="true"></i
+        ></span>
+        <span class="inventory-task-copy"
+          ><span class="inventory-task-kicker">Packaging &amp; supplies</span
+          ><strong>{{ title }}</strong><small>{{ description }}</small></span
+        >
+        <span class="inventory-task-meta">{{ meta }}</span
+        ><span class="inventory-task-arrow" aria-hidden="true"
+          ><i data-lucide="arrow-up-right"></i
+        ></span>
+      </button>
+      {% endfor %}
+    </div>
+  </section>
+  {% for action, title, icon in [('create','Create supply
+  item','package-plus'),('stock_in','Add stock','plus'),('stock_out','Deduct
+  stock','package-minus'),('photos','Update item photos','camera')] %}
+  <div
+    class="inventory-modal {{ 'supplies-stock-modal' if action in ['stock_in', 'stock_out'] else '' }}"
+    id="inventory-modal-{{ action }}"
+    data-inventory-modal="{{ action }}"
+    hidden
+  >
+    <button
+      class="inventory-modal-backdrop"
+      type="button"
+      aria-label="Close {{ title|lower }}"
+      data-inventory-modal-close
+    ></button>
+    <section
+      class="inventory-modal-card {{ 'inventory-modal-card--compact' if action != 'photos' else '' }}"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="supply-dialog-{{ action }}-title"
+      tabindex="-1"
+    >
+      <header class="inventory-modal-head">
+        <span class="inventory-modal-icon"
+          ><i data-lucide="{{ icon }}" aria-hidden="true"></i
+        ></span>
+        <div>
+          <span class="eyebrow">Packaging &amp; supplies</span>
+          <h2 id="supply-dialog-{{ action }}-title">{{ title }}</h2>
+        </div>
+        <button
+          class="icon-button"
+          type="button"
+          aria-label="Close {{ title|lower }}"
+          data-inventory-modal-close
+        >
+          <i data-lucide="x" aria-hidden="true"></i>
+        </button>
+      </header>
+      <div class="inventory-modal-body">
+        {% if action == 'create' %} {% include
+        'portals/inventory/_supply_create_form.html' %} {% elif action in
+        ['stock_in', 'stock_out'] %} {% with supply_tab=action,
+        supply_draft=supply_draft if supply_tab == action else {},
+        supply_draft_id=supply_draft_id if supply_tab == action else '',
+        supply_draft_expired=supply_draft_expired if supply_tab == action else
+        false %} {% include 'portals/inventory/_supply_movement_form.html' %} {%
+        endwith %} {% else %} {% with supply_tab='photos' %} {% include
+        'portals/inventory/_supply_photos.html' %}{{ supply_pagination('photos')
+        }} {% endwith %} {% endif %}
+      </div>
+    </section>
+  </div>
+  {% endfor %}
+</div>

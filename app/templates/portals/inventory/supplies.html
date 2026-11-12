@@ -1,0 +1,5 @@
+{% from 'portals/inventory/_supply_components.html' import supply_photo,
+photo_input, supply_pagination with context %} {% if supply_view == 'manage' %}
+{% include 'portals/inventory/supplies_manage.html' %} {% elif supply_view ==
+'movements' %} {% include 'portals/inventory/supplies_movements.html' %} {% else
+%} {% include 'portals/inventory/supplies_stocks.html' %} {% endif %}

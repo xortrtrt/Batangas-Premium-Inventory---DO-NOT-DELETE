@@ -35,87 +35,6 @@
         });
     }
 
-    function bindNotificationMenu() {
-        const menu = document.querySelector("[data-notification-menu]");
-        const trigger = menu?.querySelector("[data-notification-trigger]");
-        const panel = menu?.querySelector("[data-notification-panel]");
-        const list = panel?.querySelector(".notification-list");
-        if (!menu || !trigger || !panel) {
-            return;
-        }
-
-        function positionPanel() {
-            const viewportWidth = window.innerWidth;
-            const viewportHeight = window.innerHeight;
-            const edge = 12;
-            const gap = 14;
-            const panelWidth = Math.min(410, viewportWidth - (edge * 2));
-            const triggerRect = trigger.getBoundingClientRect();
-            const desktop = window.matchMedia("(min-width: 861px)").matches;
-
-            panel.style.position = "fixed";
-            panel.style.width = `${panelWidth}px`;
-            panel.style.right = "auto";
-            panel.style.left = `${edge}px`;
-            panel.style.top = `${edge}px`;
-
-            const panelHeight = panel.offsetHeight;
-            const preferredLeft = desktop
-                ? triggerRect.right + gap
-                : triggerRect.right - panelWidth;
-            const preferredTop = desktop
-                ? triggerRect.top - 8
-                : triggerRect.bottom + 10;
-            const maxLeft = Math.max(edge, viewportWidth - panelWidth - edge);
-            const maxTop = Math.max(edge, viewportHeight - panelHeight - edge);
-            const left = Math.min(Math.max(edge, preferredLeft), maxLeft);
-            const top = Math.min(Math.max(edge, preferredTop), maxTop);
-
-            panel.style.left = `${Math.round(left)}px`;
-            panel.style.top = `${Math.round(top)}px`;
-        }
-
-        function prepareOpenPanel() {
-            menu.classList.add("is-positioning");
-            window.requestAnimationFrame(() => {
-                if (!menu.open) return;
-                if (list) list.scrollTop = 0;
-                positionPanel();
-                menu.classList.remove("is-positioning");
-            });
-        }
-
-        function setExpanded(open) {
-            trigger.setAttribute("aria-expanded", String(open));
-            menu.classList.toggle("is-open", open);
-            if (open) prepareOpenPanel();
-            else menu.classList.remove("is-positioning");
-        }
-
-        trigger.addEventListener("click", () => {
-            if (!menu.open) menu.classList.add("is-positioning");
-        });
-        menu.addEventListener("toggle", () => setExpanded(menu.open));
-        document.addEventListener("pointerdown", (event) => {
-            if (menu.open && !menu.contains(event.target)) {
-                menu.open = false;
-            }
-        });
-        document.addEventListener("keydown", (event) => {
-            if (event.key === "Escape" && menu.open) {
-                menu.open = false;
-                trigger.focus();
-            }
-        });
-        window.addEventListener("resize", () => {
-            if (menu.open) positionPanel();
-        });
-        window.visualViewport?.addEventListener("resize", () => {
-            if (menu.open) positionPanel();
-        });
-        setExpanded(menu.open);
-    }
-
     function bindSignOutConfirmation() {
         const form = document.querySelector("[data-logout-form]");
         const modal = document.querySelector("[data-logout-modal]");
@@ -205,9 +124,8 @@
         ].join(", ");
         const categorySelector = [
             ".movement-categories a",
-            ".stock-clear-button",
+            "a.stock-clear-button",
             "form[data-auto-filter] a.button",
-            "[data-refund-pane-link]",
             "[data-async-filter-results] .pagination a",
             "[data-async-filter-results] .stock-pagination a",
         ].join(", ");
@@ -272,10 +190,10 @@
                 const filters = document.querySelector("form.stock-ledger__filters");
                 const nextFilters = documentResponse.querySelector("form.stock-ledger__filters");
                 if (filters && nextFilters) {
-                    ["q", "sort"].forEach((name) => {
+                    ["q", "sort", "date"].forEach((name) => {
                         const control = filters.elements.namedItem(name);
                         const nextControl = nextFilters.elements.namedItem(name);
-                        if (control && nextControl && document.activeElement !== control) {
+                        if (control && nextControl && (!pushState || document.activeElement !== control)) {
                             control.value = nextControl.value;
                         }
                     });
@@ -283,11 +201,7 @@
                 if (documentResponse.title) document.title = documentResponse.title;
                 if (pushState) window.history.pushState({}, "", url);
                 window.lucide?.createIcons();
-                if (contentSelector === "[data-refund-thread]") {
-                    if (replacement.querySelector("[data-refund-conversation]")) {
-                        document.dispatchEvent(new CustomEvent("refund:conversation-visible"));
-                    }
-                }
+                document.dispatchEvent(new CustomEvent('portal:content-updated', { detail: { root: replacement } }));
             } catch (error) {
                 if (error.name === "AbortError") return;
                 window.location.assign(url);
@@ -314,7 +228,7 @@
         document.addEventListener("change", (event) => {
             const control = event.target;
             if (!(control instanceof HTMLSelectElement) && !(control instanceof HTMLInputElement)) return;
-            if (control instanceof HTMLInputElement && !["checkbox", "radio"].includes(control.type)) return;
+            if (control instanceof HTMLInputElement && !["checkbox", "radio", "date"].includes(control.type)) return;
             const form = control.closest("form");
             if (isFilterForm(form)) {
                 window.clearTimeout(timers.get(form));
@@ -335,6 +249,8 @@
                 || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
                 return;
             }
+            // A different page needs its own sidebar, body classes and scripts.
+            if (new URL(link.href).pathname !== window.location.pathname) return;
             event.preventDefault();
             refreshContent(new URL(link.href), { targetSelector: targetSelectorFor(link) });
         });
@@ -428,8 +344,8 @@
         const input = form.querySelector('input[name="quantity"]');
         const unit = option?.dataset.stockUnit;
         unitHint.textContent = unit
-            ? `Enter the quantity in ${unit}. Available: ${option.dataset.stockAvailable} ${unit}.`
-            : "Select a material to see its stock unit and available balance.";
+            ? `${unit} · Available: ${option.dataset.stockAvailable} ${unit}`
+            : "";
         input.removeAttribute("max");
         if (unit) input.max = option.dataset.stockAvailable;
     });
@@ -567,14 +483,14 @@
             }
         });
 
-        const requestedModal = new URLSearchParams(window.location.search).get("modal");
+        const requestedModal = document.querySelector('[data-inventory-initial-modal]')?.dataset.inventoryInitialModal
+            || new URLSearchParams(window.location.search).get("modal");
         if (requestedModal) {
             openModal(requestedModal, null, { updateUrl: false });
         }
     }
 
     bindPortalDrawer();
-    bindNotificationMenu();
     bindSignOutConfirmation();
     bindAutoFilterForms();
     bindInventoryProductsPagination();

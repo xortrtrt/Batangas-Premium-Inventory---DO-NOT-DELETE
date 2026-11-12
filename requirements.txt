@@ -4,3 +4,5 @@ python-multipart==0.0.20
 python-dotenv==1.1.0
 psycopg2-binary==2.9.10
 jinja2==3.1.6
+Pillow==13.0.0
+tzdata==2026.6; sys_platform == "win32"

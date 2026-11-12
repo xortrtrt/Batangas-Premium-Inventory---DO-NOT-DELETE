@@ -18,7 +18,7 @@ password. Changing your password in Profile survives application restarts.
 6. **Dispatch Stock:** choose a finished product, number of whole packs, and a
    note describing the dispatch. The system uses earliest-expiring batches first,
    including multiple batches when needed. It records no sale, payment, or order.
-7. **Inventory Logs:** review stock increases and deductions. Dispatch records
+7. **Inventory movements:** review stock increases and deductions. Dispatch records
    show their reference, note, actor, timestamp, and before/after balances.
 
 The extracted catalog keeps MEATTRACK's original product definitions. Products

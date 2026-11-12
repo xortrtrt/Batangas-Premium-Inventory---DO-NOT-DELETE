@@ -59,7 +59,7 @@
       <span class="batch-row__icon" aria-hidden="true"><i data-lucide="package-open"></i></span>
       <div class="batch-row__identity">
         <strong>{{ batch.item_name }}</strong>
-        <span><b>{{ batch.batch_code }}</b> · {{ source_label }}</span>
+        <span><b>{{ batch.batch_code }}</b> · Batch date {{ batch.batch_date|nice_date }} · {{ source_label }}</span>
       </div>
       <div class="batch-row__stock">
         <span>Available</span>

@@ -36,14 +36,6 @@ BATCH_SORTS = {
     "product_asc": "ii.name ASC, ib.batch_id DESC",
 }
 
-ACCOUNT_SORTS = {
-    "newest": "a.account_id DESC",
-    "oldest": "a.account_id ASC",
-    "name_asc": "a.name ASC, a.account_id ASC",
-    "type_asc": "a.account_type ASC, a.name ASC",
-    "status_asc": "a.is_active DESC, a.name ASC",
-}
-
 LOG_SORTS = {
     "newest": "al.activity_log_id DESC",
     "oldest": "al.activity_log_id ASC",
@@ -105,9 +97,6 @@ def display_decimal(value: Decimal) -> str:
     text = format(value.normalize(), "f")
     return text.rstrip("0").rstrip(".") if "." in text else text
 
-def parse_money(value: object, label: str = "Amount") -> Decimal:
-    return measurements.parse_decimal_exact(value, label, scale=2, nonnegative=True)
-
 def require_inventory_choice(value: object, choices: list[str], label: str) -> str:
     cleaned = normalize_inventory_text(str(value), label)
     for choice in choices:
@@ -165,11 +154,11 @@ __all__ = [
     'execute_write', 'fetch_all', 'fetch_one', 'get_transaction_cursor', 'hash_password',
     'password_needs_rehash', 'validate_password_policy', 'verify_password',
     'record_event', 'revoke_account_sessions',
-    'PRODUCT_SORTS', 'INVENTORY_ITEM_SORTS', 'BATCH_SORTS', 'ACCOUNT_SORTS',
+    'PRODUCT_SORTS', 'INVENTORY_ITEM_SORTS', 'BATCH_SORTS',
     'LOG_SORTS', 'MOVEMENT_SORTS', 'UNIT_ALIASES', 'UNIT_FACTORS', 'raw_material_categories',
     'product_categories', 'stock_units', 'content_units', 'recipe_units', 'INVENTORY_LOG_ACTIONS',
     'safe_sort_sql', 'database_health', 'normalize_inventory_text', 'normalize_inventory_name',
-    'parse_inventory_decimal', 'display_decimal', 'parse_money', 'require_inventory_choice',
+    'parse_inventory_decimal', 'display_decimal', 'require_inventory_choice',
     'canonical_inventory_unit', 'convert_inventory_quantity', 'pagination_meta',
     '_add_log_cursor', 'add_log'
 ]

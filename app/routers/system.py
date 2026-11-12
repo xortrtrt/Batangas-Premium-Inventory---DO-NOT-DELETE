@@ -6,10 +6,19 @@ from fastapi import APIRouter, HTTPException, status
 from fastapi.responses import JSONResponse, RedirectResponse
 
 from app import repositories as data
+from app.dev_reload import ENABLED as DEV_LIVE_RELOAD, VERSION as DEV_RELOAD_VERSION
 from app.web import media_url
 
 MEDIA_FILENAME_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]*$")
 router = APIRouter()
+
+if DEV_LIVE_RELOAD:
+    @router.get("/__dev/reload", include_in_schema=False)
+    def dev_reload_version():
+        return JSONResponse(
+            {"version": DEV_RELOAD_VERSION},
+            headers={"Cache-Control": "no-store"},
+        )
 
 @router.get("/health", include_in_schema=False)
 def health():

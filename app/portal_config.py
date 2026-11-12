@@ -34,9 +34,19 @@ INVENTORY_NAV = [
     ("raw-materials", "Raw Materials", "beef"),
     ("finished-products", "Finished Products", "package-search"),
     ("batches", "Product Batches", "package-check"),
-    ("logs", "Inventory Logs", "scroll-text"),
+    ("logs", "Inventory movements", "scroll-text"),
+    ("supplies-manage", "Supplies Workspace", "package-plus"),
+    ("supplies", "Packaging & Supplies", "boxes"),
+    ("supplies-movements", "Supply movements", "arrow-left-right"),
     ("profile", "Profile", "user-cog"),
 ]
+
+INVENTORY_NAV_GROUPS = (
+    (None, ("dashboard",)),
+    ("Product Goods", ("inventory", "raw-materials", "finished-products", "batches", "logs")),
+    ("Supplies", ("supplies-manage", "supplies", "supplies-movements")),
+    (None, ("profile",)),
+)
 
 portal_nav = {
     "inventory": INVENTORY_NAV,
@@ -69,13 +79,20 @@ portal_secondary_sections = {
     },
 }
 
-owner_nav_groups = (
-    ("Inventory Operations", ("dashboard", "inventory", "raw-materials", "finished-products", "batches", "logs")),
-    ("Account", ("profile",)),
-)
+owner_nav_groups = INVENTORY_NAV_GROUPS
 
 def portal_nav_for(role_key: str, team_leader_role: str | None = None) -> list[tuple[str, str, str]]:
     return INVENTORY_NAV
+
+def portal_nav_groups_for(role_key: str, team_leader_role: str | None = None) -> list[dict]:
+    nav_items = {slug: (slug, label, icon) for slug, label, icon in portal_nav_for(role_key, team_leader_role)}
+    return [
+        {
+            "label": label,
+            "items": [nav_items[slug] for slug in slugs],
+        }
+        for label, slugs in INVENTORY_NAV_GROUPS
+    ]
 
 def default_section_for(role_key: str, team_leader_role: str | None = None) -> str:
     return "dashboard"
@@ -85,6 +102,7 @@ __all__ = [
     'owner_nav_groups',
     'portal_nav',
     'portal_nav_for',
+    'portal_nav_groups_for',
     'portal_secondary_sections',
     'roles',
     'team_leader_nav_by_role',

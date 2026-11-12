@@ -19,7 +19,7 @@
     {% for batch in archive['items'] %}
       <article class="archive-record">
         <header class="archive-record-heading">
-          <div class="archive-product"><img src="{{ batch.product_name|product_image|media_url }}" alt="{{ batch.product_name }}" width="64" height="64" loading="lazy"><div><span class="archive-state"><span aria-hidden="true"></span>Removed</span><h4>{{ batch.product_name }}</h4><span class="archive-batch-code">{{ batch.batch_code }}</span></div></div>
+          <div class="archive-product"><img src="{{ batch.product_name|product_image|media_url }}" alt="{{ batch.product_name }}" width="64" height="64" loading="lazy"><div><span class="archive-state"><span aria-hidden="true"></span>Removed</span><h4>{{ batch.product_name }}</h4><span class="archive-batch-code">{{ batch.batch_code }} · Batch date {{ batch.batch_date|nice_date }}</span></div></div>
           <div class="archive-quantity"><span>Packs removed</span><strong>{{ batch.quantity_removed|number }}<small>packs</small></strong></div>
         </header>
         <div class="archive-record-body"><div class="archive-reason"><span class="lifecycle-mini-label"><i data-lucide="message-square-text" aria-hidden="true"></i>Removal reason</span><p>{{ batch.removal_reason }}</p></div><dl class="archive-facts"><div><dt>Originally received</dt><dd>{{ batch.quantity_received|number }} packs</dd></div><div><dt>Expiry date</dt><dd>{{ batch.expiry_date|nice_date }}</dd></div><div><dt>Source</dt><dd>{{ batch.source_type.replace('_',' ')|title }}</dd></div></dl></div>

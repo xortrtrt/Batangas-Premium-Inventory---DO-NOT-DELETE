@@ -1,7 +1,7 @@
 (function () {
     const today = new Date().toISOString().slice(0, 10);
     document.querySelectorAll('input[type="date"]').forEach((input) => {
-        if (!input.value) {
+        if (!input.value && !input.hasAttribute("data-date-filter")) {
             input.value = today;
         }
     });

@@ -11,6 +11,7 @@ from fastapi.templating import Jinja2Templates
 from starlette import status
 
 from app.business_time import BUSINESS_ZONE
+from app.dev_reload import ENABLED as DEV_LIVE_RELOAD
 
 BASE_DIR = Path(__file__).resolve().parent
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
@@ -51,11 +52,6 @@ PRODUCT_IMAGE_KEYWORDS = [
     ("chicken", "chicken_tocino.jpg"),
     ("pork", "pork_tapa.jpg"),
 ]
-
-def currency(value: float | int | None) -> str:
-    if value is None:
-        return "—"
-    return f"PHP {value:,.2f}"
 
 def number(value: float | int | None) -> str:
     if value is None:
@@ -101,8 +97,8 @@ def product_image_url(product: dict) -> str:
 
 def configure_templates(csrf_token) -> None:
     templates.env.globals["csrf_token"] = csrf_token
+    templates.env.globals["dev_live_reload"] = DEV_LIVE_RELOAD
     templates.env.filters.update(
-        currency=currency,
         number=number,
         stock_quantity=stock_quantity,
         nice_date=nice_date,

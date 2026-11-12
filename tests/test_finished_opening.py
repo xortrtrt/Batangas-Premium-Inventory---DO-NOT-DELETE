@@ -103,7 +103,7 @@ def test_duplicate_submission_and_changed_payload(opening_stock):
     assert again["already_recorded"] and again["product_batch_id"] == first["product_batch_id"]
     with pytest.raises(ValueError, match="different details"):
         record(opening_stock, opening_reference=reference, quantity="13")
-    with pytest.raises(ValueError, match="Batch code already exists"):
+    with pytest.raises(ValueError, match="Batch number already exists"):
         record(opening_stock)
     assert scalar(dsn, "SELECT quantity_available FROM inventory_batches") == 10
 

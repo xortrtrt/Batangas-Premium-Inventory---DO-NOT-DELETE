@@ -1,0 +1,23 @@
+<form novalidate class="supplies-filters" method="get" role="search">
+  {% if supply_tab == 'photos' %}<input
+    type="hidden"
+    name="modal"
+    value="photos"
+  />{% endif %}
+  <div class="supplies-field">
+    <label for="supply-q">Find an item</label
+    ><input
+      id="supply-q"
+      name="q"
+      value="{{ supply_q }}"
+      placeholder="Search name or category"
+      maxlength="120"
+    />
+  </div>
+  <button class="button subtle" type="submit">Search</button>{% if supply_q %}<a
+    href="{% if supply_tab == 'photos' %}?modal=photos{% else %}/portal/{{ role_key }}/supplies{% endif %}"
+    class="button subtle"
+    >Clear</a
+  >{% endif %}
+</form>
+{% include 'portals/inventory/_supply_cards.html' %}

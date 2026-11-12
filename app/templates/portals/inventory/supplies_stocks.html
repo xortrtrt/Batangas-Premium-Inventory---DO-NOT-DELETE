@@ -1,0 +1,49 @@
+<section
+  class="panel inventory-items-browser finished-products-browser supplies-workspace supplies-catalog"
+  aria-labelledby="supplies-title"
+>
+  <header class="panel-heading">
+    <h2 id="supplies-title">Packaging &amp; supplies inventory</h2>
+    <div class="supplies-module-actions">
+      <a
+        class="button primary"
+        href="/portal/{{ role_key }}/supplies-manage?modal=create"
+        ><i data-lucide="package-plus" aria-hidden="true"></i>Create supply
+        item</a
+      ><a class="button subtle" href="/portal/{{ role_key }}/supplies-manage"
+        >Supplies workspace</a
+      ><a class="button subtle" href="/portal/{{ role_key }}/supplies-movements"
+        >View movements</a
+      >
+    </div>
+  </header>
+  <form
+    novalidate
+    class="filter-bar supplies-filters"
+    method="get"
+    role="search"
+  >
+    <div class="supplies-field">
+      <label for="supply-q">Find an item</label
+      ><input
+        id="supply-q"
+        name="q"
+        value="{{ supply_q }}"
+        placeholder="Search name or category"
+        maxlength="120"
+      />
+    </div>
+    <button class="button subtle" type="submit">Search</button>{% if supply_q
+    %}<a href="/portal/{{ role_key }}/supplies" class="button subtle">Clear</a
+    >{% endif %}
+  </form>
+  <div class="panel-heading">
+    <h3>Supply catalog</h3>
+    <span class="inventory-product-count"
+      ><i data-lucide="boxes" aria-hidden="true"></i>{{
+      supplies_page.pagination.total }} item{{ '' if
+      supplies_page.pagination.total == 1 else 's' }}</span
+    >
+  </div>
+  {% include 'portals/inventory/_supply_cards.html' %} {{ supply_pagination() }}
+</section>
